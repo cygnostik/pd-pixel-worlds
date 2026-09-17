@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "delivery": "bundled-source",
+  "realms": [
+    {"id": "office", "title": "Office Space", "description": "Cubicles, CRTs and a parent-linked printer-yard teamwork scene.", "source": "src/art/scenes.js", "preview": "docs/images/office-space.png", "provenance": "Original procedural artwork; unofficial film-inspired demonstration. See NOTICE.md."},
+    {"id": "cafe", "title": "Kitten Café", "description": "A warm café inhabited by expressive quadruped kittens.", "source": "src/art/scenes.js", "preview": "docs/images/kitten-cafe.png", "provenance": "Original setting and procedural artwork. MIT."},
+    {"id": "bridge", "title": "Star Trek: TNG", "description": "An aft-facing Enterprise-D-inspired bridge with command seating and two foreground helm stations.", "source": "src/art/bridge-scene.js", "preview": "docs/images/tng-bridge.png", "provenance": "Original procedural artwork; unofficial franchise-inspired demonstration. See NOTICE.md."}
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "pd-pixel-worlds",
+  "version": "0.1.0",
+  "description": "Pixel-art realms for Hermes Desktop, with a shared live-agent runtime and a clean daily display.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "ProDyn",
+  "repository": {"type": "git", "url": "https://github.com/cygnostik/pd-pixel-worlds.git"},
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/preview.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:display": "node tests/display-browser.mjs",
+    "install:plugin": "node scripts/install.mjs"
+  },
+  "devDependencies": {"esbuild": "0.28.1", "playwright": "1.62.1", "react": "19.2.7", "react-dom": "19.2.7"}
+}

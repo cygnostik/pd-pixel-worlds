@@ -1,0 +1,8 @@
+node_modules/
+preview/app.bundle.js
+evidence/
+release/
+.DS_Store
+*.log
+.env
+.env.*
