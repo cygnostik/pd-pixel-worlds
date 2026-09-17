@@ -4,7 +4,16 @@ import {mkdtemp,mkdir,readFile,writeFile,lstat,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {installPlugin} from '../scripts/install.mjs';
+import {connect} from 'node:net';
 import {startPreview} from '../scripts/preview.mjs';
+
+test('malformed preview URL returns 400 and the server keeps serving',async()=>{
+ const server=await startPreview();try{
+  const port=Number(new URL(server.url).port);
+  const response=await new Promise((resolve,reject)=>{const socket=connect({host:'127.0.0.1',port},()=>socket.write('GET http://[ HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n'));let data='';socket.setEncoding('utf8');socket.on('data',s=>data+=s);socket.on('end',()=>resolve(data));socket.on('error',reject);socket.setTimeout(2000,()=>socket.destroy(new Error('No response')));});
+  assert.match(response,/^HTTP\/1\.1 400 /);assert.equal((await fetch(server.url)).status,200);
+ }finally{await server.close();}
+});
 
 test('installer is repeatable, preserves previous files and removes by moving to backup',async()=>{
  const home=await mkdtemp(join(tmpdir(),'pixel-worlds-install-'));const source=join(home,'source.js');await writeFile(source,'export default {id:"pixel-worlds"};');

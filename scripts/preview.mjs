@@ -6,7 +6,8 @@ const root=new URL('../preview/',import.meta.url);
 const allowed=new Map([['/preview/',['index.html','text/html']],['/preview/index.html',['index.html','text/html']],['/preview/app.bundle.js',['app.bundle.js','text/javascript']]]);
 export async function startPreview(port=0){
  const server=createServer(async(req,res)=>{
-  const path=new URL(req.url,'http://localhost').pathname;
+  let path;
+  try{path=new URL(req.url,'http://localhost').pathname;}catch{res.writeHead(400);res.end('Bad request');return;}
   if(path==='/'){res.writeHead(302,{Location:'/preview/'});res.end();return;}
   const file=allowed.get(path);
   if(!file||!['GET','HEAD'].includes(req.method)){res.writeHead(404);res.end('Not found');return;}
