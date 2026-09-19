@@ -11,7 +11,7 @@ export const host={
  profileRoutes:async()=>[{connectionId:'local',mode:'local',profile:'default',targetProfile:'default'}],
  async request(method){if(method==='profiles.list')return {profiles:[{name:'default',display_name:'Local agent',ui_meta:{'hermes-bots':{title:'Local agent'}}}]};if(method==='session.list')return {sessions:[]};return {};},
  requestProfile:async(route,method)=>host.request(method),
- navigate(path){window.__previewNavigation=path;},
+ navigate(path){window.__previewNavigation=path;window.__pixelWorldsPreview?.navigate(path);},
  async openSession(id,options){window.__previewSession={id,options};},
  notify(message){console.info('Preview notification',message);},
  listenerCount:()=>listeners.size

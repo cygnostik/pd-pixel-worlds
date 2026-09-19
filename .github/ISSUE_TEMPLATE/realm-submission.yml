@@ -1,0 +1,54 @@
+name: Submit a realm
+description: Share a new Pixel Worlds realm for the community directory.
+title: "[Realm] "
+labels: [realm-submission]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share a data-only `.pwrealm.json` package and a screenshot. Submissions are reviewed before inclusion in the directory; this form does not publish or execute your package automatically.
+        Creator guide: https://github.com/cygnostik/pd-pixel-worlds/blob/main/docs/realms.md
+  - type: input
+    id: name
+    attributes:
+      label: Realm name
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Author or artist credit
+    validations:
+      required: true
+  - type: input
+    id: download
+    attributes:
+      label: Public package URL
+      description: Link to a downloadable .pwrealm.json file. No account or payment required for review.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot and description
+      description: Attach a screenshot from demonstration mode, not private live sessions. Tell us what makes the realm distinctive.
+    validations:
+      required: true
+  - type: textarea
+    id: license
+    attributes:
+      label: License and provenance
+      description: Name the package license and the origin/license of every artwork asset. Identify any franchise-inspired elements separately.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I have the right to distribute the artwork under the stated license.
+          required: true
+        - label: I imported this package and checked it in Pixel Worlds and PW Agents.
+          required: true
+        - label: The package is data only, with no scripts, remote assets, credentials or private session data.
+          required: true

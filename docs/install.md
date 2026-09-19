@@ -12,7 +12,31 @@ was exercised in a running Hermes Desktop instance on macOS; a minimum released
 Hermes version and Windows/Linux desktop-host compatibility have not yet been
 established. The browser preview is not a host compatibility test.
 
-## Download
+## Native Hermes package
+
+On a current Hermes build with native plugin support:
+
+```sh
+hermes plugins install cygnostik/pd-pixel-worlds --no-enable
+hermes plugins enable pixel-worlds
+```
+
+Open **Pixel Worlds** or **PW Agents** from the Desktop sidebar or command palette.
+The manifest declares only a desktop component: no tools, hooks, Python dependencies
+or environment credentials. Official catalog availability is pending; the command
+above uses the public source repository, not a catalog entry.
+
+The native package contains `desktop/plugin.js`, identical to the standalone
+`plugin.js`. Current Hermes materializes the desktop half into its app plugin root
+and preserves existing standalone copies. If upgrading an existing standalone
+installation, update that copy explicitly using the installer below rather than
+assuming the package install overwrites it. Do not install duplicate desktop IDs.
+
+To disable a native install, use `hermes plugins disable pixel-worlds`; use the
+plugin manager to uninstall when desired. Imported realms/preferences remain in
+Desktop's plugin storage unless you explicitly clear them.
+
+## Standalone download
 
 Copy the release's `plugin.js` to
 `<HERMES_HOME>/desktop-plugins/pixel-worlds/plugin.js`. Use the active profile's

@@ -1,9 +1,60 @@
 {
   "schemaVersion": 1,
-  "delivery": "bundled-source",
+  "delivery": "data-only-json",
+  "format": "pwrealm",
+  "packageVersion": 1,
+  "canvas": {
+    "width": 480,
+    "height": 300
+  },
   "realms": [
-    {"id": "office", "title": "Office Space", "description": "Cubicles, CRTs and a parent-linked printer-yard teamwork scene.", "source": "src/art/scenes.js", "preview": "docs/images/office-space.png", "provenance": "Original procedural artwork; unofficial film-inspired demonstration. See NOTICE.md."},
-    {"id": "cafe", "title": "Kitten Café", "description": "A warm café inhabited by expressive quadruped kittens.", "source": "src/art/scenes.js", "preview": "docs/images/kitten-cafe.png", "provenance": "Original setting and procedural artwork. MIT."},
-    {"id": "bridge", "title": "Star Trek: TNG", "description": "An aft-facing Enterprise-D-inspired bridge with command seating and two foreground helm stations.", "source": "src/art/bridge-scene.js", "preview": "docs/images/tng-bridge.png", "provenance": "Original procedural artwork; unofficial franchise-inspired demonstration. See NOTICE.md."}
+    {
+      "id": "pd-office-space",
+      "builtinId": "office",
+      "title": "Office Space",
+      "subtitle": "Cubicles, coffee & a printer out back",
+      "label": "Office Space",
+      "description": "Cubicles, CRTs and a sun-warmed printer yard.",
+      "source": "src/art/scenes.js",
+      "preview": "docs/images/office-space.png",
+      "provenance": "Original procedural artwork; unofficial film-inspired demonstration. See NOTICE.md.",
+      "author": "ProDyn",
+      "importedId": "import:pd-office-space",
+      "download": "realms/pd-office-space.pwrealm.json",
+      "license": "MIT",
+      "characterStyle": "office"
+    },
+    {
+      "id": "pd-kitten-cafe",
+      "builtinId": "cafe",
+      "title": "Kitten Café",
+      "subtitle": "A little sunshine. A lot of paw work.",
+      "label": "Kitten Café",
+      "description": "A warm café inhabited by expressive quadruped kittens.",
+      "source": "src/art/scenes.js",
+      "preview": "docs/images/kitten-cafe.png",
+      "provenance": "Original setting and procedural artwork. MIT.",
+      "author": "ProDyn",
+      "importedId": "import:pd-kitten-cafe",
+      "download": "realms/pd-kitten-cafe.pwrealm.json",
+      "license": "MIT",
+      "characterStyle": "cafe"
+    },
+    {
+      "id": "pd-tng-bridge",
+      "builtinId": "bridge",
+      "title": "The Next Generation",
+      "subtitle": "A quieter kind of final frontier",
+      "label": "Star Trek: TNG",
+      "description": "An aft-facing Enterprise-D-inspired bridge with command seating and two foreground helm stations.",
+      "source": "src/art/bridge-scene.js",
+      "preview": "docs/images/tng-bridge.png",
+      "provenance": "Original procedural artwork; unofficial franchise-inspired demonstration. See NOTICE.md.",
+      "author": "ProDyn",
+      "importedId": "import:pd-tng-bridge",
+      "download": "realms/pd-tng-bridge.pwrealm.json",
+      "license": "MIT",
+      "characterStyle": "bridge"
+    }
   ]
 }

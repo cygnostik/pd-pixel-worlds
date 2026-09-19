@@ -1,0 +1,13 @@
+{
+  "name": "pixel-worlds",
+  "version": "0.2.0",
+  "description": "Pixel Worlds realm viewer and PW Agents daily display for Hermes Desktop.",
+  "author": "ProDyn",
+  "kind": "standalone",
+  "license": "MIT",
+  "homepage": "https://github.com/cygnostik/pd-pixel-worlds",
+  "provides_tools": [],
+  "provides_hooks": [],
+  "requires_env": [],
+  "python_dependencies": []
+}

@@ -1,24 +1,33 @@
 # Contributing realms
 
-Start with [the realm authoring guide](docs/realms.md) and the optional
+Start with the [creator guide](docs/realms.md) and optional
 [creator skill](skills/pixel-worlds-creator/SKILL.md).
 
-Open an issue to discuss a scene, or submit a pull request with:
+## Share a downloadable realm
 
-- a short description and screenshot using the demonstration crew;
-- source files and an explicit license/asset provenance statement;
-- working, idle, waiting, error and completion examples;
-- selection, capacity, small-layout and reduced-motion checks;
-- passing unit and browser tests.
+Use the [realm submission form](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml)
+or submit a pull request. Include:
+
+- a `.pwrealm.json` data package and a short description;
+- a screenshot using the demonstration crew;
+- author credit, asset provenance and explicit redistribution licenses;
+- proof that import, restart, selection, narrow layout and both views work;
+- working, idle, waiting, error and completion examples.
+
+Directory submissions are reviewed before they appear in the
+[realm gallery](realms/README.md). A contribution PR should add its package,
+demonstration screenshot and gallery/catalog entry together. New source-level
+character styles or procedural animation require a normal plugin code review and
+release; packages cannot load executable code.
 
 Do not include private sessions, agent output, credentials, hostnames, user home
-paths, licensed screenshots or development logs. Keep contributions scoped; new
-realms must not change the runtime's interpretation of agent activity.
+paths, unlicensed screenshots or development logs. New realms must not change the
+runtime's interpretation of agent activity.
 
-For this alpha, submissions are reviewed source-code pull requests. A realm is
-executable JavaScript, not a sandboxed wallpaper. There is no automatic installation
-of unreviewed user code or online marketplace yet.
+## Code changes
 
 Run `npm ci`, `npm test`, `npm run build`, `npx playwright install chromium`,
-`npm run test:browser` and `npm run test:display` before submitting. Rebuild the
-committed `plugin.js` when source changes.
+`npm run test:browser`, `npm run test:display` and `npm run test:realms`.
+Rebuild both committed desktop bundles when source changes. Keep generated media
+limited to demonstrative data and verify the downloaded release, not just a source
+preview.

@@ -1,59 +1,118 @@
 # Create a realm
 
-A realm is a visual interpretation of normalized agent state. It must not decide
-whether agents are working, manufacture teammates, run jobs or collect secrets.
+A realm changes the place agents inhabit, not what their activity means. Start
+with the [downloadable collection](../realms/README.md) and the
+[creator skill](../skills/pixel-worlds-creator/SKILL.md).
 
-## Start from the demos
+## Make a realm package
 
-- `src/art/scenes.js`: Office Space and Kitten Café backgrounds, anchor positions and scenery.
-- `src/art/bridge-scene.js`: aft-facing TNG bridge, architectural layers and station anchors.
-- `src/art/characters.js`: humans, kittens, status motion, selection and attention cues.
-- `src/art/pixels.js`: original pixel drawing helpers, bitmap text and deterministic random helper.
-- `src/world.js`: theme registry, agent placement, depth sorting, input and scheduling.
+1. Download a starter `.pwrealm.json` as an example.
+2. Paint an original **480×300 PNG** background. Export noninterlaced **8-bit RGB
+   or RGBA**, not indexed-color, animated PNG, SVG or a remote image URL.
+3. Give the package a unique ID, title, author credit and license. Set twelve
+   distinct `[x,y]` station positions and choose the `office`, `cafe` or `bridge`
+   character style.
+4. Import through **Pixel Worlds → Import realm**. Select it in both Pixel Worlds
+   and PW Agents. Check selection, all states, layering and narrow panes with the
+   demonstration crew.
+5. Add a demonstration screenshot and [submit your realm](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml).
 
-Current realms are reviewed JavaScript compiled into the plugin. There is no ZIP
-importer, arbitrary remote script loader or stable external realm-package API yet.
+No plugin rebuild is needed. Packages persist through Hermes's plugin storage.
+Duplicate IDs are rejected: use **Remove realm** before importing a replacement.
+The importer cannot remove or overwrite built-in scenes.
 
-## Design first
+## Package format: `pwrealm`, version 1
 
-Choose one camera direction. Lay out foreground, agent stations, routes and the
-background before drawing detail. Keep the same perspective across all props.
-For the bridge, the viewer stands at the forward screen looking aft; the forward
-screen therefore must not also appear behind the command seats.
+The exact validator lives in [`src/realm-packages.js`](../src/realm-packages.js).
+The three complete files under `realms/` are working examples.
 
-Use intentional palettes, readable silhouettes and light/material detail. Keep
-characters legible at normal pane sizes. Treat the starter realms as examples,
-not mandatory color schemes. Avoid copying reference photographs or third-party
-assets into the repository.
+| Field | Value |
+| --- | --- |
+| `format` | `"pwrealm"` |
+| `version` | `1` (format version, not plugin version) |
+| `id` | Lowercase words/numbers separated by hyphens, starting with a letter; at most 64 characters. `office`, `cafe`, `bridge` are reserved. |
+| `title`, `subtitle`, `label` | Plain text; maximum 80, 160 and 32 characters. |
+| `author`, `license`, `provenance` | Optional plain text; maximum 80, 160 and 240 characters. Include these for submissions. |
+| `width`, `height` | `480`, `300` |
+| `characterStyle` | `"office"`, `"cafe"` or `"bridge"` |
+| `anchors` | Twelve distinct `[x,y]` pairs: `0 ≤ x < 480`, `0 ≤ y < 300`. |
+| `background` | Complete PNG in a `data:image/png;base64,` data URL. |
+| `layers` | Optional array of up to four `{ "afterY": number, "image": PNG data URL }` objects, each 480×300. |
 
-## Connect to the renderer
+Text fields are display text, not URLs or markup. Unknown properties are rejected.
+The library assigns the `import:` runtime namespace; do not put it in a package ID.
 
-1. Add a theme with a unique stable `id`, `title`, `subtitle` and `label` to `THEMES` in `src/world.js`.
-2. Add twelve distinct world-space anchors to `ANCHORS` in `src/art/scenes.js`. The logical canvas is 480×300, scaled with smoothing disabled.
-3. Dispatch your cached background from `drawBackground`. Use a separate module for complex scenery.
-4. Add realm-specific characters, ambient effects and occlusion layers where needed. Do not assume adding a theme entry automatically supplies them.
-5. Keep routing around obstacles intentional. Verify moving characters and their selectable regions after resize.
-6. Add metadata to `realms/catalog.json` and a demonstration-only screenshot.
+Layers sort by `afterY`. Each paints before characters whose anchor Y is greater
+than or equal to that value; `300` paints in front of every character. Use RGBA
+transparency for rails and consoles. The `bridge` style seats slots 0–4; the other
+styles use their built-in character behavior at your anchors.
 
-Renderer agents include `id`, `slot`, `kind`, `parentId`, `status`, `activity`,
-`attention` and optional metadata. Treat inputs as immutable. Supported statuses
-include active, waiting, error, done, idle and unknown. Animation must reflect
-those states without inventing progress or hiding historical attention.
+Limits: **1 MiB/package**, **512 KiB/PNG**, **eight imported packages**, **4 MiB
+persisted total**. Decoding/storage failures do not publish partial imports.
 
-Identity must survive theme changes. Teamwork motifs require actual parent links;
-being on-screen together is not a relationship. Stable appearance comes from the
-assigned slot. Do not infer personal characteristics from real agent names.
+### Assemble a package from a PNG
 
-## Test before submitting
+Run inside a repository checkout after saving `my-background.png`. The starter
+provides valid anchors; adjust them for your composition.
 
-- Working, waiting, failure, completion, idle and unverified states are visually distinct.
-- Twelve hit regions remain reachable at different DPRs and pane sizes.
-- Selection survives theme switching. Overflow is never silently hidden.
-- Motion stops when paused, reduced or hidden; event bursts do not bypass the frame cap.
-- Small panes scroll only the scene when necessary, not the whole interface.
-- Display mode works without the inspector or roster.
-- Screenshots contain fixture agents only. Declare all asset rights and licenses.
+```js
+// Save as make-my-realm.mjs, then run: node make-my-realm.mjs
+import {readFile, writeFile} from 'node:fs/promises';
+import {validateRealmPackage} from './src/realm-packages.js';
 
-Run the commands in [CONTRIBUTING.md](../CONTRIBUTING.md), then submit a pull
-request. Include a short design explanation and proof images rather than raw
-development logs or real session data.
+const realm = JSON.parse(await readFile('realms/pd-kitten-cafe.pwrealm.json', 'utf8'));
+Object.assign(realm, {
+  id: 'my-cafe', title: 'My Café', label: 'My Café',
+  subtitle: 'An original place for the crew',
+  author: 'Your artist name', license: 'MIT', provenance: 'Original artwork',
+  background: 'data:image/png;base64,' + (await readFile('my-background.png')).toString('base64'),
+  layers: []
+});
+validateRealmPackage(realm);
+await writeFile('my-cafe.pwrealm.json', JSON.stringify(realm, null, 2) + '\n');
+```
+
+Packages cannot supply JavaScript, CSS, HTML, fonts, networking, tool calls or new
+character code. New animation/character behavior requires a reviewed source
+contribution. Imported office packages use their own anchors; the builtin office's
+printer-yard teamwork choreography remains part of the builtin scene.
+
+## Design before drawing
+
+Choose one camera direction and foreground/midground/background hierarchy.
+Keep perspective coherent. The TNG example looks aft from the forward screen;
+that screen cannot also appear behind the command seats. Keep silhouettes and
+selection targets readable. Small panes scroll rather than shrinking characters.
+
+Use original work or assets with explicit redistribution rights. Keep franchise
+names separate from asset licenses. Never distribute reference photographs,
+private telemetry or live-session screenshots.
+
+## Advanced source contributions
+
+- `src/art/scenes.js`: office/café scenery and builtin stations.
+- `src/art/bridge-scene.js`: bridge architecture and foreground layers.
+- `src/art/characters.js`: characters, status motion and attention cues.
+- `src/world.js`: placement, depth sorting, selection and scheduling.
+
+Add a stable theme ID, twelve anchors, cached background and appropriate character
+behavior through these source APIs. Preserve immutable agent IDs, source ownership,
+parent links, selection and attention. Teamwork requires actual parent links;
+being on-screen together is not a relationship.
+
+`npm run export:realms` exports the three procedural scenes as packages.
+`node scripts/export-realms.mjs --check` decodes them in a real browser and checks
+pixel equality, seating, layering, hit testing and persistence without rewriting.
+
+## Test before sharing
+
+- Active, waiting, error, done, idle and unknown remain distinguishable.
+- Every station is selectable after resize; scenery does not hide the crew.
+- Selection and identity survive realm/view switches.
+- Pause, reduced motion and hidden-view behavior stop motion correctly.
+- PW Agents discloses demo/live status and off-stage agents.
+- Import, reload, duplicate rejection and explicit removal work.
+- Screenshots use the demonstration crew; credit/licenses travel with the package.
+
+Run [the contribution checks](../CONTRIBUTING.md), then submit the package or source
+PR with its gallery entry. An issue submission does not automatically publish it.

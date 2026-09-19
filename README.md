@@ -4,7 +4,7 @@
 
 ![Office Space, Kitten Café and the TNG-inspired bridge, using demonstration agents](docs/images/starter-realms.png)
 
-**Public alpha · v0.1.0** · [Download](https://github.com/cygnostik/pd-pixel-worlds/releases) · [Create a realm](docs/realms.md) · [Submit a realm](CONTRIBUTING.md)
+**Public alpha · v0.2.0** · **[Browse & download realms](realms/README.md)** · [Get the plugin](https://github.com/cygnostik/pd-pixel-worlds/releases) · [Create a realm](docs/realms.md) · [Submit a realm](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml)
 
 ## Three starter realms
 
@@ -14,7 +14,17 @@
 | **Kitten Café** | Quadruped kittens, sunlit tables, pastry displays, plants and a climbing tree. |
 | **Star Trek: TNG** | A fan-inspired Enterprise-D bridge: luminous dome, aft stations, three command chairs, sweeping rail and two foreground helm consoles. |
 
-All artwork is drawn procedurally. Switching realms preserves identities, selection and attention reminders. Demo agents are explicitly labelled and never become live activity.
+The starter artwork is drawn procedurally. Switching realms preserves identities, selection and attention reminders. Demo agents are explicitly labelled and never become live activity.
+
+## Add a realm
+
+1. Pick a scene in the **[realm gallery](realms/README.md)** and download its `.pwrealm.json` package.
+2. Open **Pixel Worlds → Import realm** and select the file.
+3. Select it in Pixel Worlds or **PW Agents**. No rebuild or restart is needed.
+
+Imported realms stay in your local library across restarts. A package contains
+embedded PNG scenery, station positions and a supported character style—not
+executable plugin code. [Package format and creator guide →](docs/realms.md)
 
 ## Install in Hermes Desktop
 
@@ -47,12 +57,13 @@ profile argument. [Installation and compatibility details →](docs/install.md)
 
 - **Live agents** shows observed Hermes activity. An empty room means no sessions have been observed, not that imaginary agents are working.
 - **Explore themes** supplies a demonstration crew and lets you try its states.
+- **PW Agents** opens the uncluttered daily display directly from the sidebar or command palette. It shares the same live state and imported realms as Pixel Worlds.
 - **Display mode** gives the realm the pane without the dashboard. Reveal the small controls with hover or keyboard focus; use **Exit display** or **Escape** to return.
 - Select an agent for details and native session navigation. Search includes session identifiers.
 - Pause animation or enable reduced motion. Scenes stop animating while hidden.
 - The roster keeps all observed agents; the scene shows up to twelve at a time, with explicit paging and off-stage counts.
 
-![Clean display mode with the illustrative TNG bridge crew](docs/images/display-mode.png)
+![PW Agents showing the TNG-inspired bridge with an explicitly illustrative crew](docs/images/pw-agents.png)
 
 The plugin uses your configured profile names and source-qualified identities.
 Errors and input reminders remain visible until acknowledged locally. Clearing
@@ -79,6 +90,7 @@ npm run build
 npx playwright install chromium
 npm run test:browser
 npm run test:display
+npm run test:realms
 ```
 
 The build needs no Hermes checkout, private packages, credentials or local source
@@ -88,19 +100,21 @@ Browser tests start and stop their own loopback servers.
 
 ## Create and share realms
 
-The [authoring guide](docs/realms.md) explains the renderer and state contract. An
-optional [Pixel Worlds creator skill](skills/pixel-worlds-creator/SKILL.md) helps
-coding agents follow the same boundaries. Starter metadata lives in
+The [realm gallery](realms/README.md) is the collection's home: screenshots,
+author credits and direct downloads. The [authoring guide](docs/realms.md) and
+[creator skill](skills/pixel-worlds-creator/SKILL.md) cover making packages and
+testing them in both views. Machine-readable metadata lives in
 [`realms/catalog.json`](realms/catalog.json).
 
-For this alpha, share realms through reviewed pull requests and download builds
-from GitHub releases. There is no automatic installation of unreviewed realm code.
+Use the [realm submission form](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml)
+to propose a listing, or send a pull request. Directory submissions are reviewed;
+downloads never execute a realm's own scripts.
 
 ## Where this is going
 
-- **Pixel Worlds:** the realm viewer, creation tools and sharing system. This repository is the first working viewer/runtime, creator guide and starter collection.
-- **PW Agents:** a separate, minimal daily agent view using those realms. Display mode is available here now; the separate product is planned.
-- **PW Online:** the future public hub, directory, submission flow and download links.
+- **Pixel Worlds:** the viewer, local realm library, import flow and creator skills.
+- **PW Agents:** the separate minimal daily-use view, included in this plugin and sharing its runtime.
+- **PW Online:** the future dedicated website. The repository gallery, downloads and submission form serve as the hub now.
 
 [Architecture and observation boundaries](docs/architecture.md) · [Privacy and security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 

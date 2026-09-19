@@ -24,6 +24,8 @@ export const styles = `
 .pw .pw-display-theme{min-width:0;max-width:190px;color:var(--pw-ink);background:var(--pw-panel);border:1px solid var(--pw-line);border-radius:6px;padding:6px;font-size:11px}
 .pw .pw-display-theme:focus-visible{outline:2px solid var(--pw-accent);outline-offset:2px}
 .pw-display-options button{font-size:11px}
+.pw-realm-manager{margin:0 0 16px;padding:12px;border:1px solid var(--pw-line);border-radius:8px}.pw-realm-manager>.pw-caption{display:block;margin-top:8px}.pw[data-display=true] .pw-realm-manager{display:none}
+.pw-agents{position:relative;overflow:hidden;min-height:0}.pw-agents>.pw-scene{height:100%;overscroll-behavior:contain}.pw-agents .pw-scene-inner{min-width:800px;min-height:450px}.pw-agents-controls{position:absolute;z-index:2;left:12px;top:12px;max-width:calc(100% - 24px);font-size:11px}.pw-agents-options,.pw-agents-pagination{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px;padding:8px;border:1px solid var(--pw-line);border-radius:9px;background:var(--pw-panel)}.pw-agents-status{color:var(--pw-muted);line-height:1.5}.pw-agents .pw-display-strip{flex-wrap:wrap}.pw-agents select{max-width:190px}
 @media(hover:none){.pw-display-options{opacity:1;pointer-events:auto;transform:none}}
 @media(prefers-reduced-motion:reduce){.pw *{scroll-behavior:auto!important;transition:none!important}}
 `;

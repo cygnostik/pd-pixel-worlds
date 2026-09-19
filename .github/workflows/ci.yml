@@ -16,7 +16,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run build
-      - run: git diff --exit-code -- plugin.js
+      - run: git diff --exit-code -- plugin.js desktop/plugin.js
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
       - run: npm run test:display
+      - run: npm run test:realms

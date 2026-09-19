@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { THEMES, createWorld, getTeamMembers } from '../src/world.js';
+import { ANCHORS } from '../src/art/scenes.js';
+
+test('imported realm descriptors retain selection, bridge seats, custom anchors and builtin fallback',()=>{
+ const {canvas}=fakeCanvas(),w=createWorld(canvas);
+ const agents=Array.from({length:12},(_,slot)=>({id:`crew-${slot}`,slot,status:['active','waiting','error','done','idle','unknown'][slot%6]}));
+ w.update({theme:'bridge',agents,selectedId:'crew-1',reducedMotion:true});const builtin=w.getAgentRegions();
+ const realm={id:'import:test-bridge',characterStyle:'bridge',background:{image:'background'},anchors:ANCHORS.bridge,layers:[{afterY:160,image:{image:'rail'}},{afterY:300,image:{image:'helm'}}]};
+ w.update({theme:realm.id,realm});assert.equal(w.getMetrics().theme,realm.id);assert.deepEqual(w.getAgentRegions(),builtin);
+ w.update({agents:[...agents,{id:'extra'}],selectedId:'extra'});assert.ok(w.getAgentRegions().some(r=>r.id==='extra'));
+ w.update({theme:'cafe',realm:null});assert.equal(w.getMetrics().theme,'cafe');assert.equal(w.getMetrics().total,13);
+ w.update({theme:realm.id,realm});w.update({realm:null});assert.equal(w.getMetrics().theme,'office');
+ w.update({theme:'office',realm:{...realm,id:'office'}});assert.equal(w.getMetrics().theme,'office');w.destroy();
+});
 
 function fakeCanvas() {
   const calls=[]; const listeners=new Map();
