@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { THEMES, createWorld, getTeamMembers } from '../src/world.js';
 import { ANCHORS } from '../src/art/scenes.js';
+import {createShip} from '../src/ship.js';
+import {SHIP_ROOMS} from '../src/ship-layout.js';
 
 test('imported realm descriptors retain selection, bridge seats, custom anchors and builtin fallback',()=>{
  const {canvas}=fakeCanvas(),w=createWorld(canvas);
@@ -45,6 +47,26 @@ test('bats require at least two active members of a real parent link',()=>{
   assert.deepEqual([...getTeamMembers([{id:'p',status:'active'},{id:'c',parentId:'p',status:'active'},{id:'w',parentId:'p',status:'waiting'}])],['p','c']);
   assert.deepEqual([...getTeamMembers([{id:'x',parentId:'p',status:'active'},{id:'y',parentId:'p',status:'error'}])],[]);
 });
+test('shared ship rooms preserve full roster, scaled hit targets and static reduced-motion transfers',()=>{
+ const ship=createShip({rooms:SHIP_ROOMS}),{canvas,listeners}=fakeCanvas(),w=createWorld(canvas,{ship});
+ const agents=Array.from({length:27},(_,slot)=>({id:`crew-${slot}`,slot,status:'active'}));
+ w.update({theme:'bridge',agents,reducedMotion:true});
+ assert.equal(w.getMetrics().total,27);assert.equal(w.getMetrics().overflow,agents.length-Object.values(SHIP_ROOMS).reduce((n,room)=>n+room.stations.length,0));
+ for(const room of Object.keys(SHIP_ROOMS)){
+  ship.setRoom(room);w.resize(600,600,2);assert.equal(w.getMetrics().visible,SHIP_ROOMS[room].stations.length);
+  for(const r of w.getAgentRegions())assert.equal(w.hitTest(r.x+r.width/2,r.y+r.height/2),r.id);
+  for(const r of w.getSceneRegions())assert.ok([r.x,r.y,r.width,r.height].every(Number.isFinite));
+ }
+ const before=ship.getSnapshot().populations.live.locations.map(l=>[l.id,l.room]);
+ w.update({theme:'office',agents:agents.slice(12,24)});w.update({theme:'bridge',agents});
+ assert.deepEqual(ship.getSnapshot().populations.live.locations.map(l=>[l.id,l.room]),before);
+ w.update({agents:agents.slice(0,2)});assert.equal(ship.transfer('crew-0','engineering').ok,true);
+ assert.equal(ship.getSnapshot().populations.live.activeTripId,null);assert.equal(ship.getSnapshot().populations.live.counts.engineering,1);
+ ship.setRoom('engineering');const hotspot=w.getSceneRegions().find(r=>r.action==='pulse');
+ listeners.get('pointerdown')({clientX:10+(hotspot.x+hotspot.width/2)*960/600,clientY:20+(hotspot.y+hotspot.height/2)});
+ assert.equal(ship.getFrame().effects.pulse,1);
+ w.destroy();assert.equal(ship.getSnapshot().populations.live.total,2);ship.dispose();
+});
 test('DPR-independent hit testing and cleanup',()=>{
   const {canvas,listeners}=fakeCanvas(); let selected=null;const w=createWorld(canvas,{onSelect:id=>selected=id});
   w.resize(960,600,2);w.update({agents:[{id:'a',name:'Alpha',status:'waiting'}],reducedMotion:true});
@@ -63,6 +85,17 @@ test('30fps budget, background reuse, static and hidden lifecycle',()=>{
   w.setVisible(false);w.update({selectedId:'a'});assert.equal(w.getMetrics().frames,pausedFrames);assert.equal(w.hitTest(0,0),null);
   w.setVisible(true);w.update({paused:false,reducedMotion:true});assert.equal(scheduled.size,0);
   w.update({reducedMotion:false});assert.equal(scheduled.size,1);w.destroy();assert.equal(scheduled.size,0);
+});
+test('inactive consumers cannot stall a visible shared ship; last-driver pause and teardown freeze it',()=>{
+ const ship=createShip({rooms:SHIP_ROOMS}),scheduled=new Map();let clock=0,next=1;
+ const host={performance:{now:()=>clock},requestAnimationFrame:fn=>{const id=next++;scheduled.set(id,fn);return id;},cancelAnimationFrame:id=>scheduled.delete(id)};
+ const a=fakeCanvas().canvas,b=fakeCanvas().canvas;a.ownerDocument.defaultView=host;b.ownerDocument.defaultView=host;
+ const visible=createWorld(a,{ship}),inactive=createWorld(b,{ship});const agents=[{id:'a',status:'active'}];
+ visible.update({theme:'bridge',agents});inactive.update({theme:'bridge',agents,paused:true});ship.transfer('a','engineering');
+ for(let n=0;n<150;n++){const data=agents.map(a=>({...a,detail:`event ${n}`}));visible.update({agents:data});inactive.update({agents:data});clock+=40;const pending=[...scheduled.values()];scheduled.clear();pending.forEach(fn=>fn(clock));}
+ assert.ok(ship.getFrame().time>5.8,'Hidden stream updates cannot rebase the active clock');assert.notEqual(ship.getSnapshot().populations.live.locations[0].phase,'preparing');
+ visible.update({paused:true});const frozen=ship.getFrame();clock+=60000;inactive.update({agents:agents.map(a=>({...a,detail:'event 149'}))});assert.deepEqual(ship.getFrame(),frozen);
+ visible.update({paused:false});assert.deepEqual(ship.getFrame(),frozen,'Resume rebases without catch-up');visible.destroy();inactive.destroy();assert.equal(scheduled.size,0);ship.dispose();
 });
 test('streaming event bursts cannot bypass the animation frame budget',()=>{
  const {canvas}=fakeCanvas();const scheduled=new Map();let clock=0,next=1;

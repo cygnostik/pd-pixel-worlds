@@ -1,12 +1,15 @@
 import { W, H, painter } from './art/pixels.js';
 import { ANCHORS, YARD, drawBackground } from './art/scenes.js';
 import {drawBridgeRail,drawBridgeHelm} from './art/bridge-scene.js';
+import {drawEngineering as drawEngineeringBackground,drawEngineeringForeground,drawEngineeringEffects,ENGINEERING_HOTSPOTS} from './art/engineering-scene.js';
+import {drawBridgeEffects,BRIDGE_HOTSPOTS} from './art/ship-effects.js';
+import {SHIP_ROOMS} from './ship-layout.js';
 import { drawAgent, drawBadge, identity } from './art/characters.js';
 
 export const THEMES=Object.freeze([
  Object.freeze({id:'office',title:'Office Space',subtitle:'Cubicles, coffee & a printer out back',accent:'#c2a77b',description:'A beige cubicle diorama with a sun-warmed service yard. Bats appear only for active, parent-linked teammates.'}),
  Object.freeze({id:'cafe',title:'Kitten Café',subtitle:'A little sunshine. A lot of paw work.',accent:'#c8a56f',description:'Quadruped kittens, oak floors, coffee plants and a pastry counter in a sunlit neighborhood café.'}),
- Object.freeze({id:'bridge',title:'The Next Generation',subtitle:'A quieter kind of final frontier',accent:'#bda2ab',description:'An Enterprise-D–inspired bridge: warm beige structure, rose carpet, wooden horseshoe and pastel LCARS.'}),
+ Object.freeze({id:'bridge',title:'The Next Generation',subtitle:'Bridge & Main Engineering',accent:'#bda2ab',description:'An Enterprise-D–inspired ship: warm bridge, luminous warp core, purposeful crew and playable LCARS.'}),
 ]);
 export const CAPACITY=12;
 export const WORLD_SIZE=Object.freeze({width:960,height:600});
@@ -25,7 +28,7 @@ export function getTeamMembers(agents){return new Set(teamGroups(agents).flatMap
  * getAgentRegions returns canvas-local CSS rectangles, including letterboxing.
  * setVisible(false) is for host pane visibility; document visibility is also honored.
  */
-export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
+export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{},ship=null}={}){
  if(!canvas?.getContext)throw new TypeError('createWorld requires a canvas');
  const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('Canvas2D is unavailable');
  const doc=canvas.ownerDocument||globalThis.document;
@@ -34,7 +37,10 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
  const makeSurface=()=>{let out;if(doc?.createElement)out=doc.createElement('canvas');else if(typeof OffscreenCanvas!=='undefined')out=new OffscreenCanvas(W,H);else throw new Error('An offscreen Canvas2D surface is required');out.width=W;out.height=H;return out;};
  const scene=makeSurface(),sc=scene.getContext('2d');
  const backgrounds=new Map(),positions=new Map();
- let state={theme:'office',realm:null,agents:[],selectedId:null,reducedMotion:false,paused:false};
+ let state={theme:'office',realm:null,agents:[],selectedId:null,reducedMotion:false,paused:false,shipMode:'live'};
+ const clockConsumer=Symbol('ship renderer');
+ const isShip=()=>Boolean(ship&&state.theme==='bridge'&&!state.realm);
+ const shipRoom=()=>ship?.getSnapshot().room||'bridge';
  const characterStyle=()=>state.realm?.characterStyle||state.theme;
  let width=960,height=600,dpr=1,scale=2,offsetX=0,offsetY=0,visible=true,destroyed=false;
  let frameId=null,lastFrame=-Infinity,lastTick=null,time=0,regions=[],items=[],teamwork=null,backgroundBuilds=0;
@@ -42,11 +48,12 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
  const now=()=>host.performance?.now?.()??Date.now();
  const isVisible=()=>visible&&!doc?.hidden;
  const animate=()=>!destroyed&&isVisible()&&!state.paused&&!state.reducedMotion;
- const report=()=>({theme:state.theme,total:state.agents.length,visible:items.length,overflow:Math.max(0,state.agents.length-items.length),capacity:CAPACITY,visibleCount:items.length,totalCount:state.agents.length,overflowCount:Math.max(0,state.agents.length-items.length),fps,frameMs,renderMs:frameMs,frames:drawCount,backgroundBuilds,paused:state.paused,reducedMotion:state.reducedMotion,hidden:!isVisible(),teamwork:teamwork?{...teamwork,participants:[...teamwork.participants]}:null});
+ const report=()=>{const population=isShip()?ship.getSnapshot().populations[state.shipMode]:null,overflow=population?population.counts.offstage:Math.max(0,state.agents.length-items.length);return {theme:state.theme,room:isShip()?shipRoom():null,total:state.agents.length,visible:items.length,overflow,capacity:isShip()?SHIP_ROOMS[shipRoom()].stations.length:CAPACITY,visibleCount:items.length,totalCount:state.agents.length,overflowCount:overflow,roomCounts:population?.counts||null,fps,frameMs,renderMs:frameMs,frames:drawCount,backgroundBuilds,paused:state.paused,reducedMotion:state.reducedMotion,hidden:!isVisible(),teamwork:teamwork?{...teamwork,participants:[...teamwork.participants]}:null};};
  const notify=()=>{if(!destroyed)onMetrics(report());};
- function background(){if(state.realm)return state.realm.background;if(!backgrounds.has(state.theme)){const surface=makeSurface();drawBackground(surface.getContext('2d'),state.theme);backgrounds.set(state.theme,surface);backgroundBuilds++;}return backgrounds.get(state.theme);}
- function bridgeLayer(name,draw){const key=`bridge:${name}`;if(!backgrounds.has(key)){const surface=makeSurface();draw(surface.getContext('2d'));backgrounds.set(key,surface);}sc.drawImage(backgrounds.get(key),0,0);}
+ function background(){if(state.realm)return state.realm.background;const room=isShip()?shipRoom():null,key=room?`ship:${room}`:state.theme;if(!backgrounds.has(key)){const surface=makeSurface(),context=surface.getContext('2d');if(room==='engineering')drawEngineeringBackground(context);else drawBackground(context,state.theme);backgrounds.set(key,surface);backgroundBuilds++;}return backgrounds.get(key);}
+ function bridgeLayer(name,draw){const night=isShip()&&ship.getSnapshot().night,key=`bridge:${name}:${night}`;if(!backgrounds.has(key)){const surface=makeSurface(),context=surface.getContext('2d');draw(context);if(night){context.globalCompositeOperation='source-atop';context.fillStyle='#0a112c88';context.fillRect(0,0,W,H);context.globalCompositeOperation='source-over';}backgrounds.set(key,surface);}sc.drawImage(backgrounds.get(key),0,0);}
  function setItems(themeChanged=false){
+  if(isShip()){items=ship.getFrame(state.shipMode).items;teamwork=null;return;}
   const selected=state.agents.find(a=>a.id===state.selectedId);let visibleAgents=state.agents.slice(0,CAPACITY);
   if(selected&&!visibleAgents.some(a=>a.id===selected.id))visibleAgents[CAPACITY-1]=selected;
   const group=state.theme==='office'?teamGroups(state.agents).find(g=>g.ids.filter(id=>visibleAgents.some(a=>a.id===id)).length>=2):null;
@@ -81,22 +88,33 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
  }
  function render(dt=0){
   if(destroyed||!isVisible())return;
-  const start=now();move(dt);sc.imageSmoothingEnabled=false;sc.clearRect(0,0,W,H);sc.drawImage(background(),0,0);
+  const start=now();if(isShip())setItems();else move(dt);sc.imageSmoothingEnabled=false;sc.clearRect(0,0,W,H);sc.drawImage(background(),0,0);
+  const shipFrame=isShip()?ship.getFrame(state.shipMode):null,bridge=state.theme==='bridge'&&(!shipFrame||shipFrame.room==='bridge');
+  if(shipFrame){
+   if(shipFrame.effects.night){sc.fillStyle='#0a112c88';sc.fillRect(0,0,W,H);}
+   const effectPainter=({bridge:drawBridgeEffects,engineering:drawEngineeringEffects})[shipFrame.room];
+   effectPainter(sc,state.reducedMotion?0:shipFrame.time,shipFrame.effects);
+  }
   // Depth-sort crew; the aft-facing bridge also has a rail and foreground helm layer.
   const sorted=[...items].sort((a,b)=>a.y-b.y||a.index-b.index);
   const t=state.reducedMotion?0:time;
-  let railPainted=false,layerIndex=0;
+  let railPainted=false,helmPainted=false,layerIndex=0,shipForegroundPainted=false;
+  const shipForeground=shipFrame?.room==='engineering'?{name:'engineering-foreground',draw:drawEngineeringForeground,afterY:280}:null;
   const style=characterStyle(),layers=state.realm?.layers||[];
   for(const item of sorted){
+   if(shipForeground&&!shipForegroundPainted&&item.y>=shipForeground.afterY){bridgeLayer(shipForeground.name,shipForeground.draw);shipForegroundPainted=true;}
    while(layerIndex<layers.length&&item.y>=layers[layerIndex].afterY)sc.drawImage(layers[layerIndex++].image,0,0);
-   if(state.theme==='bridge'&&item.y>=160&&!railPainted){bridgeLayer('rail',drawBridgeRail);railPainted=true;}
+   if(bridge&&item.y>=160&&!railPainted){bridgeLayer('rail',drawBridgeRail);railPainted=true;}
+   if(bridge&&shipFrame&&item.y>=286&&!helmPainted){bridgeLayer('helm',drawBridgeHelm);helmPainted=true;}
    drawAgent(sc,item,style,t,item.agent.id===state.selectedId);
   }
   while(layerIndex<layers.length)sc.drawImage(layers[layerIndex++].image,0,0);
-  if(state.theme==='bridge'){if(!railPainted)bridgeLayer('rail',drawBridgeRail);bridgeLayer('helm',drawBridgeHelm);}
+  if(bridge){if(!railPainted)bridgeLayer('rail',drawBridgeRail);if(!helmPainted)bridgeLayer('helm',drawBridgeHelm);}
+  if(shipForeground&&!shipForegroundPainted)bridgeLayer(shipForeground.name,shipForeground.draw);
+
   for(const item of sorted)drawBadge(sc,item,style,item.agent.id===state.selectedId);
   if(teamwork){const p=painter(sc);p.rect(350,93,108,13,'#65553ddd');p.text('LINKED TEAM WORK',356,97,'#ffebc0',6);}
-  if(state.agents.length>CAPACITY){const p=painter(sc),s=`${items.length} IN SCENE · ${state.agents.length-items.length} IN LIST`;p.rect(151,286,181,12,'#303c38');p.text(s,160,289,'#eee4c9',6);}
+  if(!shipFrame&&state.agents.length>CAPACITY){const p=painter(sc),s=`${items.length} IN SCENE · ${state.agents.length-items.length} IN LIST`;p.rect(151,286,181,12,'#303c38');p.text(s,160,289,'#eee4c9',6);}
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;ctx.fillStyle='#252a29';ctx.fillRect(0,0,width,height);ctx.drawImage(scene,offsetX,offsetY,W*scale,H*scale);
   regions=sorted.map(item=>({id:item.agent.id,x:offsetX+(item.x-(style==='cafe'?25:18))*scale,y:offsetY+(item.y-42)*scale,width:(style==='cafe'?53:40)*scale,height:49*scale,worldX:item.x*2,worldY:item.y*2,team:item.team}));
   drawCount++;frameMs=now()-start;measureFrames++;
@@ -105,12 +123,12 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
  }
  function tick(stamp){frameId=null;if(!animate())return;
   if(lastTick===null)lastTick=stamp;
-  if(stamp-lastFrame>=1000/30-1){const dt=Math.min(.08,Math.max(0,(stamp-lastTick)/1000));time+=dt;lastTick=stamp;lastFrame=stamp;render(dt);if(stamp-lastNotify>1000){lastNotify=stamp;notify();}}
+  if(stamp-lastFrame>=1000/30-1){const dt=Math.min(.08,Math.max(0,(stamp-lastTick)/1000));time+=dt;lastTick=stamp;lastFrame=stamp;if(isShip())ship.tick(stamp,state.shipMode,{consumer:clockConsumer});render(dt);if(stamp-lastNotify>1000){lastNotify=stamp;notify();}}
   if(animate()&&request)frameId=request(tick);
  }
  function sync(){if(!animate()){if(frameId!==null&&cancel)cancel(frameId);frameId=null;lastTick=null;fps=0;}else if(frameId===null&&request){lastTick=null;lastFrame=-Infinity;frameId=request(tick);}}
  function update(patch={}){
-  if(destroyed)return;const before=state.theme,beforeRealm=state.realm,beforeSelection=state.selectedId;
+  if(destroyed)return;const before=state.theme,beforeRealm=state.realm,beforeSelection=state.selectedId,beforeMode=state.shipMode;
   // Imported descriptors come from createRealmLibrary, never a mutable global
   // registry. A package cannot shadow a builtin ID or supply character code.
   const id=Object.hasOwn(patch,'theme')?(typeof patch.theme==='object'?patch.theme?.id:patch.theme):state.theme;
@@ -120,7 +138,10 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
   else if(Object.hasOwn(patch,'realm')&&patch.realm===null&&state.realm){state.theme='office';state.realm=null;}
   if(Object.hasOwn(patch,'agents')){const seen=new Set();state.agents=(Array.isArray(patch.agents)?patch.agents:[]).filter(a=>a&&a.id!==undefined&&a.id!==null&&!seen.has(a.id)&&seen.add(a.id)).map(a=>({...a}));}
   for(const key of ['selectedId','reducedMotion','paused'])if(Object.hasOwn(patch,key))state[key]=key==='selectedId'?patch[key]:Boolean(patch[key]);
+  if(Object.hasOwn(patch,'shipMode'))state.shipMode=patch.shipMode==='demo'?'demo':'live';
   if(Object.hasOwn(patch,'visible'))visible=Boolean(patch.visible);
+  if(before!==state.theme||beforeMode!==state.shipMode)ship?.releaseClock(clockConsumer);
+  if(isShip()){if(Object.hasOwn(patch,'agents'))ship.sync(patch.agents,state.shipMode);ship.tick(now(),state.shipMode,{paused:state.paused,reducedMotion:state.reducedMotion,hidden:!isVisible(),consumer:clockConsumer});}
   setItems(before!==state.theme||beforeRealm!==state.realm);
   // Streaming snapshots share the 30fps clock; direct controls still repaint immediately.
   if(!request||!animate()||frameId===null||before!==state.theme||beforeRealm!==state.realm||beforeSelection!==state.selectedId)render();
@@ -133,12 +154,15 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{}}={}){
   scale=Math.min(width/W,height/H);offsetX=(width-W*scale)/2;offsetY=(height-H*scale)/2;render();
  }
  function hitTest(x,y){if(destroyed||!isVisible())return null;for(let i=regions.length-1;i>=0;i--){const r=regions[i];if(x>=r.x&&x<=r.x+r.width&&y>=r.y&&y<=r.y+r.height)return r.id;}return null;}
- function select(event){const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;const id=hitTest((event.clientX-r.left)*width/r.width,(event.clientY-r.top)*height/r.height);if(id!==null)onSelect(id);}
- function hover(event){if(!canvas.style)return;const r=canvas.getBoundingClientRect();canvas.style.cursor=hitTest((event.clientX-r.left)*width/(r.width||1),(event.clientY-r.top)*height/(r.height||1))===null?'default':'pointer';}
- function visibilityChanged(){if(isVisible())render();sync();notify();}
+ function getSceneRegions(){if(!isShip())return [];const hotspots=({bridge:BRIDGE_HOTSPOTS,engineering:ENGINEERING_HOTSPOTS})[shipRoom()];return hotspots.map(h=>{const [x,y,w,hgt]=h.rect||[h.x,h.y,h.width,h.height];return {...h,x:offsetX+x*scale,y:offsetY+y*scale,width:w*scale,height:hgt*scale};});}
+ function sceneHit(x,y){return getSceneRegions().find(r=>x>=r.x&&x<=r.x+r.width&&y>=r.y&&y<=r.y+r.height);}
+ function select(event){const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;const x=(event.clientX-r.left)*width/r.width,y=(event.clientY-r.top)*height/r.height,id=hitTest(x,y);if(id!==null)onSelect(id);else{const hotspot=sceneHit(x,y);if(hotspot)ship.trigger(hotspot.action);}}
+ function hover(event){if(!canvas.style)return;const r=canvas.getBoundingClientRect(),x=(event.clientX-r.left)*width/(r.width||1),y=(event.clientY-r.top)*height/(r.height||1);canvas.style.cursor=hitTest(x,y)!==null||sceneHit(x,y)?'pointer':'default';}
+ function visibilityChanged(){if(isShip())ship.tick(now(),state.shipMode,{paused:state.paused,reducedMotion:state.reducedMotion,hidden:!isVisible(),consumer:clockConsumer});if(isVisible())render();sync();notify();}
  function setVisible(value){if(destroyed)return;visible=Boolean(value);visibilityChanged();}
- function destroy(){if(destroyed)return;destroyed=true;if(frameId!==null&&cancel)cancel(frameId);frameId=null;canvas.removeEventListener('pointerdown',select);canvas.removeEventListener('pointermove',hover);doc?.removeEventListener?.('visibilitychange',visibilityChanged);backgrounds.clear();positions.clear();regions=[];items=[];state.realm=null;scene.width=1;scene.height=1;}
+ const stopShip=ship?.subscribe(()=>{if(isShip()){if(state.reducedMotion&&!state.paused&&isVisible())ship.tick(now(),state.shipMode,{reducedMotion:true,consumer:clockConsumer});setItems();if(!animate())render();notify();}});
+ function destroy(){if(destroyed)return;destroyed=true;stopShip?.();ship?.releaseClock(clockConsumer);if(frameId!==null&&cancel)cancel(frameId);frameId=null;canvas.removeEventListener('pointerdown',select);canvas.removeEventListener('pointermove',hover);doc?.removeEventListener?.('visibilitychange',visibilityChanged);backgrounds.clear();positions.clear();regions=[];items=[];state.realm=null;scene.width=1;scene.height=1;}
  canvas.addEventListener('pointerdown',select);canvas.addEventListener('pointermove',hover);doc?.addEventListener?.('visibilitychange',visibilityChanged);
  resize(canvas.clientWidth||960,canvas.clientHeight||600,host.devicePixelRatio||1);sync();
- return {update,resize,setVisible,destroy,hitTest,getMetrics:report,getAgentRegions:()=>regions.map(r=>({...r})),render:()=>render(),get capacity(){return CAPACITY;}};
+ return {update,resize,setVisible,destroy,hitTest,getMetrics:report,getAgentRegions:()=>regions.map(r=>({...r})),getSceneRegions,render:()=>render(),get capacity(){return isShip()?SHIP_ROOMS[shipRoom()].stations.length:CAPACITY;}};
 }

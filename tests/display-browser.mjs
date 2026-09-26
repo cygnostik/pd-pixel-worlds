@@ -1,6 +1,8 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {startPreview} from '../scripts/preview.mjs';
+import {SHIP_ROOMS} from '../src/ship-layout.js';
+const bridgeCapacity=SHIP_ROOMS.bridge.stations.length,engineeringCapacity=SHIP_ROOMS.engineering.stations.length;
 const server=process.env.PIXEL_WORLDS_URL?null:await startPreview();
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
@@ -60,7 +62,8 @@ try{
  await page.evaluate(()=>{for(let i=0;i<27;i++)window.__pixelWorldsPreview.host.emit({type:'message.start',session_id:`display-fixture-${i}`,profile:'default',connection_id:'local',payload:{}});});
  await page.getByRole('searchbox',{name:'Find an agent'}).fill('display-fixture-26');
  await page.getByRole('button',{name:'Display mode',exact:true}).click();
- assert.match(await page.locator('.pw-display-status').innerText(),/1 on stage · 26 off-stage/);
+ // Ship membership survives roster filtering: filtering the list never teleports crew.
+ assert.match(await page.locator('.pw-display-status').innerText(),new RegExp(`${bridgeCapacity} in Bridge · ${engineeringCapacity} elsewhere · 0 in transit · ${27-bridgeCapacity-engineeringCapacity} off-stage`));
  await page.evaluate(()=>window.__pixelWorldsPreview.host.state.gateway.set('disconnected'));
  await page.waitForTimeout(100);
  assert.match(await page.locator('.pw-display-status').innerText(),/not connected/);

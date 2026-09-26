@@ -92,6 +92,10 @@ private telemetry or live-session screenshots.
 
 - `src/art/scenes.js`: office/café scenery and builtin stations.
 - `src/art/bridge-scene.js`: bridge architecture and foreground layers.
+- `src/art/lcars.js`: clipped, skew-aware LCARS panel grammar.
+- `src/art/engineering-scene.js`: Engineering art, stations and layers; dormant
+  chief engineer's office artwork is preserved here for later, not enabled in the release.
+- `src/ship.js` / `src/ship-layout.js`: built-in TNG local crew travel and rooms.
 - `src/art/characters.js`: characters, status motion and attention cues.
 - `src/world.js`: placement, depth sorting, selection and scheduling.
 
@@ -99,6 +103,13 @@ Add a stable theme ID, twelve anchors, cached background and appropriate charact
 behavior through these source APIs. Preserve immutable agent IDs, source ownership,
 parent links, selection and attention. Teamwork requires actual parent links;
 being on-screen together is not a relationship.
+
+The built-in TNG rooms are Bridge and Main Engineering; the chief engineer's
+office is excluded from the release runtime. The multi-room experience is
+source behavior, not a version-1
+package feature. Its downloadable bridge retains twelve legacy anchors and
+static layers. Room travel, local toys and shared station reservations do not
+execute from imported JSON; no schema migration is required.
 
 `npm run export:realms` exports the three procedural scenes as packages.
 `node scripts/export-realms.mjs --check` decodes them in a real browser and checks

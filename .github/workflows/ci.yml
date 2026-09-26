@@ -21,3 +21,4 @@ jobs:
       - run: npm run test:browser
       - run: npm run test:display
       - run: npm run test:realms
+      - run: npm run test:ship

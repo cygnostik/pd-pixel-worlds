@@ -8,6 +8,15 @@
 
 ## Three starter realms
 
+**Main-branch candidate, not yet released:** this checkout adds stronger LCARS
+panels and a built-in TNG ship with Bridge and Main Engineering. Use the room
+buttons and **Ship controls** for night shift, core/diagnostic effects and local
+crew placement. The chief engineer's office artwork is retained in source but
+is not available in this release candidate. Scene buttons use the same compact,
+neutral styling as the other world controls. They do not run commands or route
+real jobs. The published v0.2.0 download
+does not include this candidate yet.
+
 | Realm | What lives there |
 | --- | --- |
 | **Office Space** | CRTs, cubicles, coffee and a printer yard. The printer teamwork scene follows actual parent-linked delegation. |
@@ -61,7 +70,7 @@ profile argument. [Installation and compatibility details →](docs/install.md)
 - **Display mode** gives the realm the pane without the dashboard. Reveal the small controls with hover or keyboard focus; use **Exit display** or **Escape** to return.
 - Select an agent for details and native session navigation. Search includes session identifiers.
 - Pause animation or enable reduced motion. Scenes stop animating while hidden.
-- The roster keeps all observed agents; the scene shows up to twelve at a time, with explicit paging and off-stage counts.
+- The roster keeps all observed agents. Office/café and imports use twelve-person scene pages; the candidate TNG ship has seven bridge, eight Engineering and two office stations, with separate elsewhere/transit/off-stage counts.
 
 ![PW Agents showing the TNG-inspired bridge with an explicitly illustrative crew](docs/images/pw-agents.png)
 
@@ -91,6 +100,7 @@ npx playwright install chromium
 npm run test:browser
 npm run test:display
 npm run test:realms
+npm run test:ship
 ```
 
 The build needs no Hermes checkout, private packages, credentials or local source

@@ -1,6 +1,6 @@
 // src/plugin.js
-import React2, { useSyncExternalStore as useSyncExternalStore2 } from "react";
-import { host, Button as Button2, ROUTES_AREA, SIDEBAR_NAV_AREA, PALETTE_AREA, STATUSBAR_AREAS } from "@hermes/plugin-sdk";
+import React3, { useSyncExternalStore as useSyncExternalStore3 } from "react";
+import { host, Button as Button3, ROUTES_AREA, SIDEBAR_NAV_AREA, PALETTE_AREA, STATUSBAR_AREAS } from "@hermes/plugin-sdk";
 
 // src/runtime.js
 var str = (value) => typeof value === "string" ? value : "";
@@ -510,16 +510,16 @@ function connectHermes(host2, runtime, { now = Date.now, setTimeout: arm = globa
 }
 
 // src/app.js
-import React, { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
-import { Button } from "@hermes/plugin-sdk";
+import React2, { useState as useState2, useEffect, useRef, useMemo, useSyncExternalStore as useSyncExternalStore2 } from "react";
+import { Button as Button2 } from "@hermes/plugin-sdk";
 
 // src/art/pixels.js
 var W = 480;
 var H = 300;
 function painter(c) {
-  const rect = (x, y, w, h3, color) => {
+  const rect = (x, y, w, h4, color) => {
     c.fillStyle = color;
-    c.fillRect(Math.round(x), Math.round(y), Math.max(0, Math.round(w)), Math.max(0, Math.round(h3)));
+    c.fillRect(Math.round(x), Math.round(y), Math.max(0, Math.round(w)), Math.max(0, Math.round(h4)));
   };
   const line = (x, y, x2, y2, color, width = 1) => {
     const n = Math.max(Math.abs(x2 - x), Math.abs(y2 - y));
@@ -580,9 +580,9 @@ function cup(p, x, y, color = "#f4e5c9") {
 function books(p, x, y, n = 5) {
   const colors = ["#8c5148", "#718674", "#d4b579", "#667985", "#b28767"];
   for (let i = 0; i < n; i++) {
-    const h3 = 9 + i * 3 % 6;
-    p.rect(x + i * 5, y - h3, 4, h3, colors[i % 5]);
-    p.rect(x + i * 5, y - h3 + 2, 4, 1, "#ecd6a2");
+    const h4 = 9 + i * 3 % 6;
+    p.rect(x + i * 5, y - h4, 4, h4, colors[i % 5]);
+    p.rect(x + i * 5, y - h4 + 2, 4, 1, "#ecd6a2");
   }
 }
 function keyboard(p, x, y, w = 21) {
@@ -618,35 +618,236 @@ function printer(p, x, y) {
   r(x - 11, y + 6, 3, 2, "#8c8775");
 }
 
+// src/art/lcars.js
+var INK = "#101218";
+var COLORS = ["#edb77c", "#b9a3d6", "#e7a28d", "#e5cea2"];
+var TRACE = "#8da8bc";
+function drawLcarsPanel(p, x, y, w, h4, { seed = 1, skew = 0, variant = "systems" } = {}) {
+  if (![x, y, w, h4, skew].every(Number.isFinite) || w < 1 || h4 < 1) return;
+  w = Math.floor(w);
+  h4 = Math.floor(h4);
+  const id = Number.isFinite(seed) ? Math.trunc(seed) >>> 0 : 1;
+  const amber = COLORS[0], lilac = COLORS[1], peach = COLORS[2], cream = COLORS[3];
+  const box = (a, b, ww, hh, color) => {
+    const left2 = Math.max(0, Math.round(a)), top2 = Math.max(0, Math.round(b));
+    const right2 = Math.min(w, Math.round(a + ww)), bottom2 = Math.min(h4, Math.round(b + hh));
+    if (right2 <= left2 || bottom2 <= top2) return;
+    for (let u = left2; u < right2; u++) p.rect(x + u, y + top2 + u * skew, 1, bottom2 - top2, color);
+  };
+  const round = (a, b, ww, hh, r, color) => {
+    a = Math.round(a);
+    b = Math.round(b);
+    ww = Math.round(ww);
+    hh = Math.round(hh);
+    r = Math.max(0, Math.min(Math.floor(r), Math.floor(ww / 2), Math.floor(hh / 2)));
+    for (let row = 0; row < hh; row++) {
+      const dy = Math.max(r - row - 0.5, row - (hh - r) + 0.5, 0);
+      const inset = dy ? Math.ceil(r - Math.sqrt(Math.max(0, r * r - dy * dy))) : 0;
+      box(a + inset, b + row, ww - 2 * inset, 1, color);
+    }
+  };
+  const line = (a, b, c, d, color = TRACE) => {
+    const n = Math.ceil(Math.max(Math.abs(c - a), Math.abs(d - b)));
+    for (let i = 0; i <= n; i++) box(a + (c - a) * i / (n || 1), b + (d - b) * i / (n || 1), 1, 1, color);
+  };
+  const path = (points, color = TRACE) => {
+    for (let i = 1; i < points.length; i++) line(...points[i - 1], ...points[i], color);
+  };
+  box(0, 0, w, h4, INK);
+  if (w < 5 || h4 < 3) {
+    box(0, 0, w, 1, COLORS[id % 3]);
+    return;
+  }
+  if (h4 < 14 || w < 25) {
+    const top2 = 1, bar2 = Math.max(1, Math.min(3, h4 - 2)), spine2 = Math.min(5, Math.max(2, Math.floor(w / 8)));
+    round(1, top2, w - 2, bar2, 2, amber);
+    const split2 = Math.max(spine2 + 2, Math.floor(w * (0.42 + id % 3 * 0.06)));
+    box(split2, top2, 2, bar2, INK);
+    round(split2 + 2, top2, w - split2 - 3, bar2, 2, lilac);
+    if (h4 >= 7) {
+      round(1, top2, spine2, h4 - 2, 2, amber);
+      box(1, h4 - 4, spine2, 1, INK);
+      box(spine2 + 3, h4 - 3, Math.max(2, w * 0.27), 1, peach);
+      box(w * 0.72, h4 - 3, w * 0.17, 1, cream);
+    }
+    return;
+  }
+  const margin = 2, bar = Math.max(3, Math.min(6, Math.floor(h4 * 0.15)));
+  const spine = Math.max(5, Math.min(10, Math.floor(w * 0.105)));
+  const elbowH = Math.max(bar + 5, Math.floor(h4 * 0.58)), radius = Math.min(6, spine);
+  round(margin, margin, w - 4, elbowH, radius, amber);
+  round(margin + spine, margin + bar, w, h4, Math.max(2, radius - 2), INK);
+  const split = Math.round(w * (0.49 + id % 3 * 0.045)), end = Math.round(w * 0.81);
+  box(split, margin, 2, bar, INK);
+  box(split + 2, margin, end - split - 2, bar, lilac);
+  box(end, margin, 2, bar, INK);
+  round(end + 2, margin, w - end - 4, bar, 2, peach);
+  box(margin, elbowH - 1, spine, 2, INK);
+  round(margin, elbowH + 1, spine, h4 - elbowH - 3, 2, lilac);
+  const seam = Math.floor((h4 + elbowH) / 2);
+  box(margin, seam, spine, 1, INK);
+  box(margin, seam + 1, spine, Math.max(1, h4 - seam - 4), peach);
+  const left = margin + spine + 4, right = w - 4, top = margin + bar + 4, bottom = h4 - 6;
+  const dw = right - left, dh = bottom - top;
+  round(left, h4 - 3, dw * 0.31, 1, 0, peach);
+  round(left + dw * 0.38, h4 - 3, dw * 0.42, 1, 0, lilac);
+  if (dw < 9 || dh < 4) return;
+  const X = (t) => Math.round(left + t * dw), Y = (t) => Math.round(top + t * dh);
+  const route = (points) => path(points.map(([a, b]) => [X(a), Y(b)]));
+  const node = (a, b, color = cream) => box(X(a) - 1, Y(b) - 1, 3, 2, color);
+  if (variant === "navigation") {
+    const offset = id % 3 * 0.025;
+    route([[0.29 + offset, 0.08], [0.56, 0.08], [0.71, 0.3], [0.71, 0.68], [0.55, 0.9], [0.28, 0.9], [0.13, 0.67], [0.13, 0.31], [0.29 + offset, 0.08]]);
+    route([[0.33, 0.28], [0.51, 0.28], [0.57, 0.43], [0.57, 0.61], [0.47, 0.72], [0.31, 0.66], [0.27, 0.44], [0.33, 0.28]]);
+    path([[X(0.04), Y(0.82)], [X(0.45), Y(0.48)], [X(0.85), Y(0.12)]], peach);
+    node(0.45, 0.48);
+    node(0.85, 0.12, lilac);
+    for (let j = 0; j < 3; j++) box(X(0.86), Y(0.47 + j * 0.2), dw * (0.08 - j * 0.015), 1, j === 1 ? amber : lilac);
+  } else if (variant === "power") {
+    route([[0.42, 0], [0.59, 0.2], [0.59, 0.76], [0.42, 1], [0.25, 0.76], [0.25, 0.2], [0.42, 0]]);
+    for (let j = 0; j < 3; j++) round(X(0.33), Y(0.22 + j * 0.23), Math.max(2, dw * 0.18), 2, 1, j === 1 ? cream : lilac);
+    route([[0.25, 0.35], [0.1, 0.35], [0.1, 0.08], [0, 0.08]]);
+    route([[0.59, 0.58], [0.79, 0.58], [0.79, 0.17], [0.95, 0.17]]);
+    route([[0.59, 0.78], [0.9, 0.78], [0.9, 1]]);
+    node(0, 0.08, peach);
+    node(0.95, 0.17, amber);
+    node(0.9, 1, lilac);
+  } else {
+    const junction = 0.28 + id % 4 * 0.055, count = 2 + id % 2;
+    route([[0.02, 0.22], [junction, 0.22], [junction, 0.82], [0.93, 0.82]]);
+    for (let j = 0; j < count; j++) {
+      const a = 0.45 + j * (0.48 / count), yy = 0.08 + (id + j) % 3 * 0.14;
+      route([[a, 0.82], [a, yy], [Math.min(0.98, a + 0.12), yy]]);
+      round(X(a + 0.02), Y(yy) - 1, Math.max(3, dw * 0.1), 3, 1, j % 2 ? peach : lilac);
+    }
+    node(0.02, 0.22, cream);
+    node(junction, 0.54, amber);
+    box(X(0.04), Y(0.66), Math.max(2, dw * 0.1), 1, lilac);
+  }
+  if (w > 100) for (let j = 0; j < 3; j++) box(right - 2 - j * 4, top, 2, 1, j === 1 ? cream : amber);
+}
+
 // src/art/bridge-scene.js
 var BRIDGE_ANCHORS = [[240, 195], [161, 248], [319, 248], [196, 199], [284, 199], [240, 145], [184, 147], [296, 147], [67, 191], [413, 191], [77, 254], [403, 254]];
 var C = { wall: "#9f8e77", light: "#dfcfac", seam: "#6d6255", floor: "#697674", rose: "#916863", wood: "#81523b", black: "#191e23" };
-function panel(p, x, y, w, h3, skew = 0, seed = 1) {
-  const random = rng(seed), { poly: q } = p;
-  const box = (a, b, c, d, color) => q([[x + a, y + b + a * skew], [x + a + c, y + b + (a + c) * skew], [x + a + c, y + b + d + (a + c) * skew], [x + a, y + b + d + a * skew]], color);
-  box(0, 0, w, h3, C.black);
-  box(2, 2, w - 4, 1, "#536058");
-  const colors = ["#e4c894", "#b0a1c4", "#cd9179", "#8fb3b0", "#e6d3ab"];
-  const cols = Math.max(2, Math.floor(w / 32)), cw = (w - 6) / cols;
-  for (let n = 0; n < cols; n++) {
-    const a = 3 + n * cw;
-    box(a, 4, cw - 3, 2, colors[n % 5]);
-    box(a, 8, 3, h3 - 13, colors[(n + 2) % 5]);
-    box(a + 4, h3 - 7, cw - 7, 2, "#b4c2a4");
-    for (let j = 0; j < 5; j++) {
-      const yy = 9 + j * (h3 - 18) / 5;
-      box(a + 6, yy, 3 + random() * Math.max(3, cw - 14), 1, colors[(j + n) % 5]);
-      box(a + cw - 5, yy, 2, 1, "#90a0aa");
+function panel(p, x, y, w, h4, skew = 0, seed = 1) {
+  const count = w > 120 ? 5 : w >= 60 ? 3 : 1, step = Math.floor((w - 4) / count);
+  for (let u = 0; u < w; u++) p.rect(x + u, y + u * skew, 1, h4, C.black);
+  for (let i = 0; i < count; i++) {
+    const left = 2 + i * step;
+    if (h4 < 14) {
+      drawLcarsPanel(p, x + left, y + left * skew, step - 2, h4, { seed: seed + i, skew });
+      continue;
     }
-    if (n % 2 === 0) {
-      box(a + cw / 2, 11, 1, h3 - 21, "#6d878a");
-      box(a + cw / 2 - 3, 16, 7, 1, "#ccaa78");
+    const r = (a, b, ww, hh, color) => {
+      for (let u = a; u < a + ww; u++) p.rect(x + left + u, y + b + (left + u) * skew, 1, hh, color);
+    };
+    const l = (a, b, c, d, color) => {
+      const n = Math.max(Math.abs(c - a), Math.abs(d - b));
+      for (let j = 0; j <= n; j++) r(Math.round(a + (c - a) * j / (n || 1)), Math.round(b + (d - b) * j / (n || 1)), 1, 1, color);
+    };
+    const trace2 = (points) => {
+      for (let j = 1; j < points.length; j++) l(...points[j - 1], ...points[j], "#89a6b0");
+    };
+    const amber = "#c8b68d", lilac = "#b4a4c0", cream = "#e0d5b6";
+    r(0, 2, step - 2, h4 - 4, "#101218");
+    r(2, 4, [12, 19, 10, 15, 21][i], 2, i % 2 ? lilac : amber);
+    r(2, 6, 2, 7, amber);
+    r(2, 15, 2, 4, lilac);
+    r(2, 21, 2, 4, "#d7a17e");
+    r(26, 4, 3, 1, cream);
+    if (i === 0) {
+      trace2([[8, 10], [14, 10], [14, 22], [29, 22]]);
+      for (let j = 0; j < 3; j++) {
+        trace2([[18 + j * 4, 22], [18 + j * 4, 12 + j * 2]]);
+        r(17 + j * 4, 11 + j * 2, 3, 2, j % 2 ? lilac : cream);
+      }
+      r(7, 17, 4, 1, amber);
+      r(7, 20, 3, 1, lilac);
+    } else if (i === 1) {
+      trace2([[12, 10], [23, 10], [28, 14], [28, 20], [23, 24], [12, 24], [8, 20], [8, 14], [12, 10]]);
+      trace2([[14, 14], [21, 14], [24, 17], [21, 21], [14, 21], [11, 17], [14, 14]]);
+      l(7, 23, 27, 11, "#d7a17e");
+      r(17, 16, 2, 2, cream);
+    } else if (i === 2) {
+      for (let j = 0; j < 4; j++) r(15, 10 + j * 4, 4, 2, j === 2 ? cream : lilac);
+      trace2([[12, 10], [10, 10], [10, 23], [12, 23]]);
+      trace2([[21, 12], [25, 12], [25, 19], [29, 19]]);
+      r(6, 15, 3, 1, amber);
+      r(27, 23, 3, 1, cream);
+    } else if (i === 3) {
+      for (let j = 0; j < 5; j++) {
+        r(8, 10 + j * 3, [10, 15, 7, 13, 9][j], 1, j % 2 ? cream : lilac);
+        r(27, 10 + j * 3, 2, 1, amber);
+      }
+      r(23, 10, 1, 15, "#536a79");
+    } else {
+      trace2([[7, 19], [12, 19], [16, 13], [24, 13], [28, 17], [24, 21], [16, 21], [12, 19]]);
+      trace2([[18, 13], [18, 9], [26, 9]]);
+      trace2([[18, 21], [18, 24], [28, 24]]);
+      r(17, 16, 8, 2, cream);
+      r(7, 10, 4, 1, lilac);
+      r(8, 24, 5, 1, amber);
     }
+    r(7, 27, 8, 1, i % 2 ? amber : lilac);
+    r(20, 27, 9, 1, "#d7a17e");
   }
+}
+function sideWall(p, side) {
+  const point = (x, v) => [side < 0 ? x : 480 - x, 98 - 13 * x / 98 + v / 110 * (108 - 30 * x / 98)];
+  const poly = (pts, color) => p.poly(pts.map(([x, v]) => point(x, v)), color);
+  const box = (x, v, w, h4, color) => poly([[x, v], [x + w, v], [x + w, v + h4], [x, v + h4]], color);
+  box(0, 0, 98, 110, "#a48f76");
+  box(2, 3, 94, 103, "#b09a7e");
+  box(4, 5, 90, 3, "#7e8d99");
+  box(5, 5, 88, 1, "#c7d9df");
+  box(6, 21, 68, 78, "#72695f");
+  box(7, 22, 66, 76, "#a79a88");
+  for (const x of [8, 30, 52]) {
+    for (const [v, h4] of [[23, 12], [36, 12], [56, 12], [69, 12], [82, 13]]) {
+      box(x, v, 20, h4, "#89858a");
+      box(x + 13, v + 3, 6, 2, "#16191d");
+      box(x + 17, v + 3, 1, 1, "#e6dfc9");
+    }
+    box(x, 49, 20, 6, "#11151b");
+  }
+  box(78, 14, 16, 85, "#756b5e");
+  box(79, 15, 14, 83, "#141a20");
+  box(80, 17, 12, 19, "#10151b");
+  box(80, 40, 12, 31, "#10151b");
+  box(80, 76, 12, 19, "#10151b");
+  poly([[81, 47], [83, 44], [87, 44], [88, 42], [91, 44], [91, 46], [87, 47], [85, 49], [81, 49]], "#b59a5d");
+  poly([[84, 54], [89, 54], [91, 58], [91, 62], [89, 66], [84, 66], [82, 62], [82, 58]], "#b59a5d");
+  poly([[85, 55], [88, 55], [90, 59], [90, 62], [88, 65], [85, 65], [83, 62], [83, 59]], "#6f613c");
+  box(81, 56, 4, 2, "#b59a5d");
+  box(81, 63, 4, 2, "#b59a5d");
+  for (let i = 0; i < 5; i++) {
+    box(81 + i * 2, 80, 1, 2, i % 2 ? "#b8cdd7" : "#648eae");
+    box(81 + i * 2, 84, 1, 2, i % 2 ? "#c9b37e" : "#83a4bc");
+  }
+  box(0, 107, 98, 3, "#793f43");
+}
+function helmChair(p, x) {
+  const { rect: r, poly: q, oval: o } = p;
+  o(x, 278, 15, 3, "#303a3b55");
+  r(x - 5, 248, 10, 28, "#635f54");
+  r(x - 3, 250, 3, 24, "#a29984");
+  r(x + 2, 250, 1, 24, "#827969");
+  q([[x - 13, 237], [x - 11, 209], [x - 7, 204], [x + 8, 204], [x + 12, 209], [x + 14, 237]], "#88725e");
+  q([[x - 11, 237], [x - 9, 210], [x + 9, 210], [x + 12, 237]], "#bea17e");
+  r(x - 8, 205, 17, 5, "#d7bd96");
+  r(x - 7, 211, 15, 24, "#c4a780");
+  for (let y = 217; y < 235; y += 7) {
+    r(x - 8, y, 18, 1, "#8f785f");
+    r(x - 7, y + 1, 17, 1, "#dfc49b");
+  }
+  q([[x - 12, 238], [x + 13, 238], [x + 17, 245], [x + 13, 250], [x - 12, 250], [x - 15, 245]], "#b09370");
+  q([[x - 11, 238], [x + 12, 238], [x + 14, 244], [x - 13, 244]], "#dfc49b");
+  r(x - 10, 248, 21, 2, "#8f785f");
 }
 function chair(p, x, y, s = 1) {
   const { rect: r, poly: q, oval: o } = p;
-  const P = (pts, c) => q(pts.map(([a, b]) => [x + a * s, y + b * s]), c), R = (a, b, w, h3, c) => r(x + a * s, y + b * s, w * s, h3 * s, c);
+  const P = (pts, c) => q(pts.map(([a, b]) => [x + a * s, y + b * s]), c), R = (a, b, w, h4, c) => r(x + a * s, y + b * s, w * s, h4 * s, c);
   o(x, y + 5 * s, 18 * s, 4 * s, "#242b2b55");
   R(-4, 0, 8, 7, "#3e403c");
   P([[-15, -5], [-12, -40], [-8, -44], [9, -44], [13, -40], [17, -5]], "#7a6654");
@@ -707,39 +908,11 @@ function drawBridge(p) {
     r(x + 1, 113, 2, 6, "#d07d59");
     r(x + 1, 125, 2, 9, "#e0b07a");
   }
-  q([[0, 98], [98, 85], [98, 149], [0, 183]], "#cab591");
-  q([[4, 101], [95, 89], [95, 138], [4, 167]], "#655e50");
-  panel(p, 8, 111, 83, 38, -0.22, 4);
-  q([[480, 98], [382, 85], [382, 149], [480, 183]], "#cab591");
-  q([[476, 101], [385, 89], [385, 138], [476, 167]], "#655e50");
-  panel(p, 389, 93, 83, 38, 0.22, 6);
-  q([[3, 161], [94, 139], [97, 148], [6, 174]], "#c8b18e");
-  q([[477, 161], [386, 139], [383, 148], [474, 174]], "#c8b18e");
-  q([[8, 174], [92, 151], [89, 174], [16, 206]], "#9b866b");
-  q([[472, 174], [388, 151], [391, 174], [464, 206]], "#9b866b");
-  q([[15, 183], [87, 160], [86, 171], [23, 198]], "#d4eee5");
-  q([[465, 183], [393, 160], [394, 171], [457, 198]], "#d4eee5");
-  o(240, 193, 116, 38, "#414847");
-  o(240, 188, 116, 37, "#b49079");
-  o(240, 186, 112, 34, "#755954");
-  q([[137, 180], [143, 198], [176, 214], [209, 220], [272, 220], [305, 214], [337, 198], [343, 180], [341, 200], [307, 218], [272, 225], [208, 225], [173, 219], [139, 202]], "#b59780");
-  l(160, 209, 187, 217, "#d0dfcc");
-  l(191, 218, 288, 218, "#c7d6c4");
-  l(293, 217, 320, 209, "#d0dfcc");
-  o(240, 181, 107, 34, C.rose);
-  q([[145, 145], [335, 145], [345, 180], [135, 180]], C.rose);
-  o(240, 200, 70, 13, "#737b73");
-  chair(p, 196, 194, 0.9);
-  chair(p, 240, 190, 1);
-  chair(p, 284, 194, 0.9);
-  for (const x of [163, 306]) {
-    q([[x, 177], [x + 12, 179], [x + 18, 201], [x + 2, 202]], "#b69c80");
-    q([[x - 2, 171], [x + 10, 169], [x + 15, 179], [x, 181]], "#d0b391");
-    r(x + 1, 172, 8, 3, "#34353a");
-    r(x + 2, 173, 5, 1, "#dbb590");
-  }
-  chair(p, 161, 266, 1.14);
-  chair(p, 319, 266, 1.14);
+  sideWall(p, -1);
+  sideWall(p, 1);
+  q([[117, 211], [126, 192], [144, 175], [170, 161], [202, 152], [240, 149], [278, 152], [310, 161], [336, 175], [354, 192], [363, 211], [350, 223], [314, 230], [166, 230], [130, 223]], C.rose);
+  helmChair(p, 161);
+  helmChair(p, 319);
   o(240, -12, 283, 98, "#4b3c2d");
   o(240, -14, 276, 91, "#bdac88");
   o(240, -18, 269, 89, "#eee2bd");
@@ -771,29 +944,48 @@ function drawBridge(p) {
 function drawBridgeRail(ctx) {
   const p = painter(ctx), { poly: q, line: l } = p;
   const arc = [[117, 211], [125, 191], [143, 173], [169, 157], [200, 147], [240, 143], [280, 147], [311, 157], [337, 173], [355, 191], [363, 211]];
-  q([[220, 146], [260, 146], [250, 160], [247, 176], [232, 176], [229, 160]], "#c4b294");
+  const inner = [[119, 211], [129, 194], [148, 179], [173, 165], [203, 157], [240, 153], [277, 157], [307, 165], [332, 179], [351, 194], [361, 211]];
+  q([[201, 146], [279, 146], [270, 157], [259, 169], [251, 179], [249, 187], [231, 187], [229, 179], [221, 169], [210, 157]], "#a89e8e");
+  q([[205, 148], [275, 148], [266, 158], [255, 170], [247, 184], [233, 184], [225, 170], [214, 158]], "#d0c6b4");
+  l(211, 150, 227, 170, "#e2d8c5");
+  l(269, 150, 253, 170, "#afa596");
+  q([...inner, ...inner.map(([x, y]) => [x, y + 2]).reverse()], "#674333");
+  q([...arc, ...[...inner].reverse()], C.wood);
   for (let i = 1; i < arc.length; i++) {
-    const [x, y] = arc[i - 1], [xx, yy] = arc[i];
-    q([[x, y], [xx, yy], [xx, yy + 5], [x, y + 5]], "#674333");
-    l(x, y, xx, yy, "#b1855b", 2);
-    l(x, y + 2, xx, yy + 2, "#916144", 2);
+    l(...arc[i - 1], ...arc[i], "#b1855b");
+    l(...inner[i - 1], ...inner[i], "#916144");
+  }
+  chair(p, 196, 194, 0.9);
+  chair(p, 240, 190, 1);
+  chair(p, 284, 194, 0.9);
+  for (const side of [-1, 1]) {
+    const P = (pts, color) => q(pts.map(([x, y]) => [240 + side * x, y]), color);
+    P([[64, 180], [79, 180], [87, 184], [86, 190], [69, 190]], "#9a7c61");
+    P([[65, 180], [79, 180], [85, 183], [82, 186], [67, 186]], "#d1b18a");
+    P([[61, 178], [74, 175], [87, 187], [84, 203], [66, 201]], "#a78c71");
+    P([[65, 181], [74, 180], [83, 189], [80, 199], [68, 198]], "#e1e9df");
+    P([[61, 171], [72, 167], [80, 177], [67, 183], [59, 178]], "#d2b594");
+    P([[62, 172], [71, 169], [76, 176], [66, 179]], "#bca080");
+    P([[64, 172], [70, 170], [73, 173], [66, 175]], "#434044");
   }
 }
 function drawBridgeHelm(ctx) {
-  const p = painter(ctx), { rect: r, poly: q, line: l, oval: o } = p;
-  for (const center of [161, 319]) {
-    const x = center - 49;
-    o(center, 284, 51, 7, "#34413f60");
-    q([[x + 6, 247], [x + 94, 247], [x + 84, 282], [x + 14, 282]], "#6d6252");
-    q([[x + 10, 250], [x + 91, 250], [x + 80, 279], [x + 16, 279]], "#b3a180");
-    q([[x + 12, 253], [x + 39, 253], [x + 37, 273], [x + 30, 279], [x + 18, 277]], "#d6f2e8");
-    q([[x + 20, 281], [x + 80, 281], [x + 89, 285], [x + 15, 285]], "#50534a");
-    q([[x + 6, 232], [x + 90, 232], [x + 103, 248], [x - 5, 248]], "#cfb791");
-    q([[x + 7, 233], [x + 88, 233], [x + 95, 240], [x + 1, 240]], "#4b4540");
-    panel(p, x + 12, 234, 72, 5, 0, center);
-    q([[x - 5, 241], [x + 100, 241], [x + 103, 248], [x + 98, 254], [x - 4, 254], [x - 8, 249]], "#bba17e");
-    l(x - 4, 242, x + 98, 242, "#e2cdaa", 2);
-    l(x - 3, 254, x + 97, 254, "#7a6956");
+  const p = painter(ctx), { poly: q, line: l, oval: o } = p;
+  for (const side of [-1, 1]) {
+    const center = 240 + side * 79, P = (pts, color) => q(pts.map(([x, y]) => [center + side * x, y]), color);
+    o(center, 284, 48, 5, "#34413f45");
+    P([[-37, 281], [42, 281], [46, 285], [-39, 285]], "#3d4544");
+    P([[17, 248], [46, 248], [43, 276], [37, 281], [21, 281], [13, 273]], "#665c50");
+    P([[20, 246], [44, 247], [40, 275], [35, 278], [22, 278], [16, 271]], "#a79378");
+    P([[20, 253], [43, 253], [40, 273], [35, 277], [23, 277], [17, 270]], "#d6eee5");
+    P([[21, 255], [40, 255], [37, 270], [33, 274], [23, 274], [20, 269]], "#e6f5e9");
+    P([[-40, 235], [40, 235], [49, 241], [-49, 241]], "#bfa687");
+    P([[-37, 236], [37, 236], [43, 241], [-43, 241]], "#29292c");
+    panel(p, center - 34, 236, 68, 4, 0, side < 0 ? 11 : 19);
+    P([[-49, 240], [49, 240], [52, 243], [48, 247], [-47, 247], [-52, 244]], "#a88e72");
+    P([[-48, 240], [48, 240], [49, 242], [-49, 242]], "#d2b999");
+    P([[-49, 242], [49, 242], [47, 245], [-47, 245]], "#bba083");
+    l(center - 46, 246, center + 46, 246, "#82705d");
   }
 }
 
@@ -836,8 +1028,8 @@ function office(p) {
   r(190, 18, 54, 2, "#fff0ce");
   r(257, 29, 39, 32, "#826b4d");
   r(259, 31, 35, 28, "#b09261");
-  [[262, 35, 11, 14], [279, 34, 10, 10], [276, 47, 12, 10]].forEach(([x, y, w, h3], i) => {
-    r(x, y, w, h3, i % 2 ? "#e6ce8b" : "#eee3c9");
+  [[262, 35, 11, 14], [279, 34, 10, 10], [276, 47, 12, 10]].forEach(([x, y, w, h4], i) => {
+    r(x, y, w, h4, i % 2 ? "#e6ce8b" : "#eee3c9");
     r(x + 2, y + 4, w - 4, 1, "#a39a83");
     r(x + 2, y + 7, w - 5, 1, "#aaa088");
     r(x + 4, y, 2, 2, "#9a4f3b");
@@ -1009,14 +1201,14 @@ function cafe(p) {
   l(325, 57, 335, 68, "#eef1d9");
   r(299, 56, 2, 20, "#efdfbd");
   r(251, 77, 102, 3, "#6b694f");
-  function rug(x, y, w, h3) {
-    r(x, y, w, h3, "#ad7760");
-    r(x + 3, y + 2, w - 6, h3 - 4, "#d4b27f");
-    r(x + 6, y + 4, w - 12, h3 - 8, "#ab8668");
-    for (let xx = x + 10; xx < x + w - 10; xx += 10) r(xx, y + 6, 3, h3 - 12, "#b7936e");
+  function rug(x, y, w, h4) {
+    r(x, y, w, h4, "#ad7760");
+    r(x + 3, y + 2, w - 6, h4 - 4, "#d4b27f");
+    r(x + 6, y + 4, w - 12, h4 - 8, "#ab8668");
+    for (let xx = x + 10; xx < x + w - 10; xx += 10) r(xx, y + 6, 3, h4 - 12, "#b7936e");
     for (let xx = x + 3; xx < x + w - 2; xx += 4) {
       r(xx, y - 2, 1, 2, "#edc894");
-      r(xx, y + h3, 1, 2, "#edc894");
+      r(xx, y + h4, 1, 2, "#edc894");
     }
   }
   rug(31, 126, 162, 37);
@@ -1089,6 +1281,497 @@ function drawBackground(ctx, theme) {
   else office(p);
 }
 
+// src/art/warp-core.js
+var clamp = (n) => Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+var timeValue = (t) => Number.isFinite(t) ? Math.max(0, t) : 0;
+var bandColors = ["#245d9a", "#337fb9", "#4daddb", "#6bcdf2", "#8ce5ff"];
+function bandLevel(distance, time, pulse) {
+  const phase = (timeValue(time) + 0.176) % 1.4 / 0.8, delta = Math.abs(distance - phase);
+  const crest = Math.max(0, 1 - delta / 0.18);
+  return Math.min(4, Math.floor(crest * 4 + clamp(pulse) * 0.8));
+}
+function plasmaConduit(p, x, w) {
+  const { rect: r, line: l, poly: q } = p;
+  q([[x, 108], [x + 4, 104], [x + w - 4, 104], [x + w, 108], [x + w, 122], [x, 122]], "#20232d");
+  r(x, 108, w, 14, "#39293d");
+  l(x + 3, 105, x + w - 3, 105, "#697079");
+  for (let row = 0; row < 3; row++) r(x + 2, 109 + row * 5, w - 4, 3, row === 1 ? "#ca758d" : "#99536d");
+  for (let xx = x + 4; xx < x + w - 2; xx += 7) r(xx, 106, 2, 17, "#1d2430");
+  l(x + 1, 123, x + w - 1, 123, "#151f2a");
+}
+function drawWarpCore(p, time = 0, pulse = 0) {
+  const { rect: r, poly: q, oval: o, line: l } = p;
+  r(216, 12, 86, 148, "#101f38");
+  r(223, 12, 72, 148, "#18385f");
+  q([[232, 10], [286, 10], [292, 76], [226, 76]], "#255389");
+  r(233, 12, 51, 67, "#255f9c");
+  r(237, 12, 10, 67, "#3077b2");
+  r(255, 12, 17, 67, "#3786bb");
+  r(277, 12, 7, 67, "#1b457a");
+  r(230, 128, 60, 32, "#245b96");
+  r(237, 130, 45, 30, "#2d75ac");
+  r(251, 130, 15, 30, "#3c8cbb");
+  for (const [start, end, fromTop] of [[13, 76, true], [131, 159, false]]) for (let y = start; y < end; y += 7) {
+    const distance = fromTop ? (y - start) / (end - start) : (end - y) / (end - start), level = bandLevel(distance, time, pulse);
+    r(231, y + 1, 56, 4, bandColors[level]);
+    r(235, y, 48, 1, level >= 3 ? "#94e4fa" : "#4387b3");
+    r(234, y + 5, 50, 1, "#163b65");
+    r(248, y + 1, 22, 3, bandColors[Math.min(4, level + 1)]);
+  }
+  for (const x of [227, 247, 271, 287]) {
+    r(x, 11, 3, 65, "#14283f");
+    r(x + 1, 11, 1, 65, "#3d627b");
+    r(x, 131, 3, 29, "#1a2b43");
+  }
+  plasmaConduit(p, 183, 45);
+  plasmaConduit(p, 291, 46);
+  o(259, 77, 39, 7, "#162637");
+  r(222, 77, 75, 21, "#1e2b3b");
+  q([[222, 94], [297, 94], [308, 108], [306, 124], [213, 124], [211, 108]], "#152333");
+  o(259, 96, 43, 9, "#263b54");
+  r(216, 97, 87, 24, "#1d2d44");
+  o(259, 123, 43, 9, "#172335");
+  l(224, 80, 294, 80, "#527794");
+  l(218, 119, 301, 119, "#365a7c");
+  o(259, 109, 13, 14, "#40586c");
+  o(259, 109, 10, 11, "#122032");
+  o(259, 109, 8, 9, "#d6f5ff");
+  r(258, 99, 3, 21, "#1a2d48");
+  r(257, 95, 5, 3, "#7694a5");
+  r(257, 121, 5, 3, "#65869a");
+  for (const x of [216, 282]) {
+    r(x, 104, 22, 10, "#36517d");
+    for (let i = 0; i < 4; i++) r(x + 2 + i * 5, 106, 3, 6, "#b7dfef");
+  }
+  q([[257, 84], [260, 79], [263, 84]], "#c99486");
+  r(260, 81, 1, 2, "#d8d2b7");
+}
+function drawHallCore(p, time = 0, pulse = 0) {
+  const Y = (y) => 43 + Math.round(y * 0.72);
+  drawWarpCore({
+    ...p,
+    rect: (x, y, w, h4, c) => p.rect(x, Y(y), w, Math.max(1, Y(y + h4) - Y(y)), c),
+    line: (x, y, xx, yy, c, w = 1) => p.line(x, Y(y), xx, Y(yy), c, w),
+    poly: (points, c) => p.poly(points.map(([x, y]) => [x, Y(y)]), c),
+    oval: (x, y, rx, ry, c) => p.oval(x, Y(y), rx, rx <= 13 ? Math.min(rx, ry) : Math.round(ry * 0.72), c)
+  }, time, pulse);
+}
+
+// src/art/engineering-scene.js
+var C2 = { cream: "#d8ceba", ivory: "#f0e5ca", taupe: "#a99c89", shade: "#71695e", deep: "#454740", sand: "#b4a58a", teal: "#557b82", glass: "#111b24", blue: "#3984df", cyan: "#94e9fa", white: "#e6fbff" };
+var unit = (v) => Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
+var seconds = (v) => Number.isFinite(v) ? Math.max(0, v) : 0;
+var freeze = (value) => {
+  if (value && typeof value === "object") {
+    Object.values(value).forEach(freeze);
+    Object.freeze(value);
+  }
+  return value;
+};
+var ENGINEERING_PORTAL = freeze({ x: 120, y: 374, approach: [120, 294], rect: [103, 338, 35, 67], offscreen: true });
+var CHIEF_OFFICE_PORTAL = freeze({ x: 66, y: 158, approach: [66, 179], rect: [45, 88, 42, 72] });
+var nearExit = [[139, 294], [120, 294]];
+var leftExit = (x, y) => [[x, y], [139, y], ...nearExit];
+var crossExit = [[342, 180], [170, 180], [170, 194], [125, 194], [125, 294], [120, 294]];
+var rightExit = (x, y) => [[x, y], [342, y], [342, 294], [120, 294]];
+var ENGINEERING_STATIONS = freeze([
+  { id: "engineering-duty-port", x: 149, y: 169, facing: "north", seated: false, exitPath: [[149, 169], [139, 180], ...nearExit] },
+  { id: "engineering-duty-starboard", x: 363, y: 163, facing: "north", seated: false, exitPath: [[363, 163], [363, 180], ...crossExit] },
+  { id: "engineering-wall-port", x: 102, y: 214, facing: "west", seated: false, exitPath: leftExit(102, 214) },
+  { id: "engineering-wall-starboard", x: 387, y: 214, facing: "east", seated: false, exitPath: rightExit(387, 214) },
+  { id: "engineering-table-port", x: 174, y: 252, facing: "east", seated: false, exitPath: leftExit(174, 252) },
+  { id: "engineering-table-starboard", x: 316, y: 252, facing: "west", seated: false, exitPath: rightExit(316, 252) },
+  { id: "engineering-service-port", x: 70, y: 279, facing: "west", seated: false, exitPath: leftExit(70, 279) },
+  { id: "engineering-service-starboard", x: 410, y: 279, facing: "east", seated: false, exitPath: rightExit(410, 279) }
+]);
+var CHIEF_OFFICE_STATIONS = freeze([
+  { id: "chief-office-workbay", x: 139, y: 186, facing: "north", seated: false, exitPath: [[139, 186], [139, 208], [100, 208], [66, 179]] },
+  { id: "chief-office-console", x: 275, y: 235, facing: "north", seated: false, exitPath: [[275, 235], [181, 235], [100, 208], [66, 179]] }
+]);
+var ENGINEERING_HOTSPOTS = freeze([
+  { id: "engineering-core", label: "Warp-core resonance", x: 212, y: 61, width: 94, height: 99, action: "pulse" },
+  { id: "engineering-systems-table", label: "LCARS diagnostic simulation", x: 184, y: 189, width: 122, height: 85, action: "diagnostic" },
+  { id: "engineering-computer-access", label: "Computer access diagnostics", x: 137, y: 100, width: 28, height: 47, action: "diagnostic" },
+  { id: "engineering-isolinear", label: "Isolinear chip diagnostics", x: 359, y: 84, width: 29, height: 43, action: "diagnostic" }
+]);
+var CHIEF_OFFICE_HOTSPOTS = freeze([
+  { id: "chief-office-systems-wall", label: "Engineering systems diagnostics", x: 200, y: 58, width: 183, height: 82, action: "diagnostic" },
+  { id: "chief-office-work-console", label: "LCARS diagnostic simulation", x: 219, y: 189, width: 120, height: 40, action: "diagnostic" },
+  { id: "chief-office-tea", label: "Replicate tea", x: 407, y: 115, width: 48, height: 43, action: "tea" },
+  { id: "chief-office-annex", label: "Return through Engineering annex", x: 45, y: 88, width: 42, height: 72, action: "lift" }
+]);
+function trace(p, points, color, width = 1) {
+  for (let i = 1; i < points.length; i++) p.line(...points[i - 1], ...points[i], color, width);
+}
+function panel2(p, x, y, w, h4, seed = 1, skew = 0, variant = "systems") {
+  drawLcarsPanel(p, x, y, w, h4, { seed, skew, variant });
+}
+function rail(p) {
+  const { line: l, poly: q } = p;
+  q([[174, 151], [193, 159], [230, 165], [288, 165], [326, 159], [346, 150], [346, 156], [326, 164], [288, 170], [230, 170], [193, 164], [174, 157]], "#353f43");
+  trace(p, [[174, 150], [194, 158], [229, 164], [289, 164], [325, 158], [346, 149]], "#a99d89", 2);
+  const points = [[178, 132], [194, 140], [228, 145], [289, 145], [324, 140], [343, 131]];
+  for (const [x, y] of points) {
+    l(x, y, x, y + 18, "#b7b6a8", 2);
+    l(x + 2, y + 1, x + 2, y + 17, "#344952");
+  }
+  trace(p, points, "#372d30", 3);
+  trace(p, points, "#af8c72");
+  trace(p, points.map(([x, y]) => [x, y + 13]), "#667b85");
+}
+function chamber(p) {
+  const { rect: r, poly: q, line: l } = p;
+  q([[163, 35], [178, 24], [342, 24], [355, 37], [355, 80], [352, 80], [352, 155], [346, 156], [326, 164], [288, 170], [230, 170], [193, 164], [174, 157], [168, 155], [168, 80], [163, 80]], "#171f2a");
+  q([[175, 34], [340, 34], [340, 157], [334, 160], [183, 160], [175, 157]], "#222d38");
+  for (const x of [180, 317]) {
+    r(x, 74, 18, 73, "#68544b");
+    r(x + 4, 74, 8, 73, "#9c6155");
+    r(x + 6, 75, 2, 69, "#d99378");
+  }
+  r(201, 32, 8, 118, "#384652");
+  r(307, 32, 6, 118, "#46515b");
+  q([[174, 66], [216, 77], [216, 99], [174, 87]], "#616b70");
+  q([[301, 77], [346, 65], [346, 87], [301, 99]], "#5b656e");
+  q([[177, 74], [210, 83], [210, 90], [177, 81]], "#172633");
+  q([[308, 83], [342, 74], [342, 81], [308, 90]], "#162632");
+  q([[174, 59], [216, 70], [216, 80], [174, 70]], "#766e62");
+  q([[301, 70], [346, 58], [346, 70], [301, 80]], "#716b61");
+  trace(p, [[174, 69], [215, 79]], "#9d9481");
+  trace(p, [[301, 79], [346, 69]], "#9d9481");
+  q([[176, 148], [214, 146], [232, 152], [292, 152], [312, 146], [344, 148], [333, 160], [326, 164], [193, 164], [187, 160]], "#0f1c27");
+  drawHallCore(p);
+  rail(p);
+}
+function wallBays(p, right = false) {
+  const { poly: q, line: l } = p;
+  const X = (x) => right ? 480 - x : x, shape = (points) => points.map(([x, y]) => [X(x), y]);
+  q(shape([[4, 60], [82, 67], [96, 86], [90, 133], [6, 149]]), "#b2a793");
+  q(shape([[8, 66], [77, 73], [88, 89], [85, 128], [8, 143]]), "#848780");
+  q(shape([[11, 69], [73, 76], [84, 91], [81, 124], [11, 138]]), "#969a92");
+  q(shape([[8, 143], [85, 128], [90, 134], [9, 150]]), "#cfc5af");
+  l(X(11), 139, X(81), 125, "#696e69");
+  q(shape([[82, 67], [96, 85], [105, 153], [97, 178], [91, 184], [96, 151], [90, 90]]), "#d8ceba");
+  l(X(84), 70, X(94), 87, "#ece1c8");
+}
+function computerAccess(p) {
+  const { rect: r, poly: q } = p;
+  q([[78, 81], [103, 66], [138, 66], [174, 80], [174, 151], [163, 161], [88, 157]], "#716e62");
+  q([[85, 86], [106, 74], [139, 74], [169, 85], [169, 144], [89, 152]], "#96907c");
+  q([[92, 94], [132, 90], [166, 98], [166, 132], [94, 139]], "#3b423d");
+  panel2(p, 102, 104, 14, 26, 51);
+  panel2(p, 119, 102, 14, 28, 52);
+  r(137, 100, 28, 32, "#6e7166");
+  panel2(p, 139, 102, 24, 28, 53);
+  q([[95, 139], [133, 133], [165, 134], [169, 145], [100, 153]], "#a99f88");
+  q([[99, 141], [133, 136], [165, 137], [164, 142], [101, 148]], C2.glass);
+  q([[136, 134], [165, 134], [169, 145], [136, 150]], C2.cream);
+  panel2(p, 138, 136, 26, 7, 14);
+  q([[135, 150], [167, 150], [164, 162], [139, 162]], C2.shade);
+}
+function isolinearBay(p) {
+  const { rect: r, line: l, poly: q } = p;
+  q([[345, 77], [372, 64], [405, 67], [426, 82], [420, 155], [385, 160], [347, 153]], "#716e62");
+  q([[352, 80], [373, 73], [402, 76], [415, 86], [412, 149], [352, 153]], "#96907c");
+  r(357, 77, 35, 53, "#7d7c6f");
+  r(357, 80, 32, 48, "#c6bca5");
+  r(360, 84, 26, 41, "#152c34");
+  for (let col = 0; col < 5; col++) for (let row = 0; row < 3; row++) {
+    const x = 362 + col * 5, y = 87 + row * 12, blue = (col + row) % 2 === 0;
+    r(x, y, 3, 9, blue ? "#397ca7" : "#398b78");
+    r(x + 1, y, 1, 8, blue ? "#8dd2e9" : "#94d9b1");
+    r(x, y + 9, 3, 2, "#656d67");
+    r(x + 1, y + 10, 1, 1, "#d9cba0");
+  }
+  l(361, 124, 385, 124, "#95a79b");
+  starboardDutyConsole(p);
+}
+function starboardDutyConsole(p) {
+  p.c.save();
+  p.c.beginPath();
+  p.c.rect(357, 122, 33, 35);
+  p.c.clip();
+  p.poly([[354, 122], [389, 128], [389, 145], [354, 140]], C2.cream);
+  panel2(p, 358, 125, 26, 11, 19, 0.16);
+  p.poly([[356, 141], [387, 145], [384, 156], [358, 155]], C2.shade);
+  p.c.restore();
+}
+var WORKBAY_SPOTS = freeze([[112, 73], [139, 73], [162, 73], [359, 73], [382, 73]]);
+function workbaySoffit(p) {
+  const { poly: q } = p;
+  q([[76, 58], [181, 58], [174, 64], [172, 68], [76, 68]], "#a79d89");
+  q([[76, 68], [172, 68], [170, 71], [168, 80], [162, 79], [76, 79]], "#555b51");
+  q([[339, 58], [421, 58], [421, 68], [348, 68], [346, 64]], "#a79d89");
+  q([[348, 68], [421, 68], [421, 79], [358, 79], [352, 80], [350, 71]], "#555b51");
+  for (const [x, y] of WORKBAY_SPOTS) {
+    p.oval(x, y, 4, 2, "#747665");
+    p.oval(x, y, 2, 1, "#f3ecdc");
+  }
+}
+function coreBulkheadRim(p) {
+  const { rect: r, line: l, poly: q } = p;
+  for (const right of [false, true]) {
+    const X = (x) => right ? 520 - x : x, shape = (points) => points.map(([x, y]) => [X(x), y]);
+    q(shape([[171, 81], [177, 76], [177, 152], [173, 159], [171, 163]]), "#505d5e");
+    q(shape([[168, 163], [168, 80], [170, 71], [174, 64], [181, 58], [183, 58], [177, 65], [173, 73], [171, 81], [171, 161]]), "#7e776a");
+    q(shape([[171, 163], [171, 81], [173, 73], [177, 65], [183, 59], [182, 60], [178, 67], [175, 74], [173, 82], [173, 161]]), "#343d3d");
+    q(shape([[168, 161], [173, 159], [177, 152], [177, 157], [173, 163], [168, 164]]), "#716e62");
+    trace(p, shape([[169, 162], [169, 80], [171, 72], [175, 65], [182, 59]]), "#a49c88");
+    trace(p, shape([[173, 160], [173, 82], [175, 74], [178, 67], [182, 60]]), "#65716e");
+    for (const y of [105, 133]) l(X(168), y, X(170), y, "#50574f");
+  }
+  r(183, 58, 154, 1, "#7e776a");
+  r(183, 59, 154, 1, "#a49c88");
+  r(183, 60, 154, 1, "#343d3d");
+}
+function sideConsole(p, right = false, near = false) {
+  const { poly: q, line: l } = p;
+  const shape = (points) => points.map(([x, y]) => [right ? 480 - x : x, y]);
+  const bounds = shape(near ? [[0, 215], [45, 227], [57, 258], [51, 279], [0, 298]] : [[0, 143], [83, 131], [94, 180], [91, 207], [31, 237], [0, 221]]);
+  p.c.save();
+  p.c.beginPath();
+  bounds.forEach(([x, y], i) => i ? p.c.lineTo(x, y) : p.c.moveTo(x, y));
+  p.c.closePath();
+  p.c.clip();
+  if (near) {
+    q(shape([[0, 215], [45, 227], [51, 279], [0, 298]]), C2.shade);
+    q(shape([[0, 218], [41, 230], [44, 255], [0, 271]]), C2.cream);
+    q(shape([[0, 239], [43, 250], [57, 258], [0, 278]]), "#ddd1b9");
+    if (right) panel2(p, 439, 232, 41, 21, -3, -0.29);
+    else panel2(p, 0, 220, 41, 21, 3, 0.29);
+    q(shape([[0, 260], [50, 254], [57, 258], [0, 278]]), "#a99b83");
+    q(shape([[0, 280], [49, 262], [49, 276], [0, 294]]), "#eaf0df");
+    q(shape([[0, 282], [45, 266], [45, 274], [0, 290]]), "#f8f8e8");
+  } else {
+    q(shape([[0, 143], [83, 131], [92, 179], [15, 215], [0, 205]]), C2.taupe);
+    q(shape([[8, 148], [80, 136], [83, 164], [37, 184], [13, 184]]), C2.glass);
+    if (right) panel2(p, 400, 137, 72, 31, 12, 0.19);
+    else panel2(p, 8, 151, 72, 31, 8, -0.19);
+    q(shape([[12, 184], [84, 166], [94, 180], [21, 206]]), C2.cream);
+    if (right) {
+      l(399, 174, 459, 189, "#c08b52");
+      l(399, 176, 459, 191, "#9d8ec4");
+    } else {
+      l(20, 190, 80, 175, "#c08b52");
+      l(20, 192, 80, 177, "#9d8ec4");
+    }
+    q(shape([[21, 207], [93, 182], [91, 207], [31, 237]]), "#a79d88");
+    q(shape([[26, 211], [88, 190], [87, 207], [33, 233]]), "#d8ddcb");
+    q(shape([[29, 213], [85, 194], [84, 206], [35, 229]]), "#f4f5e6");
+  }
+  p.c.restore();
+}
+var TABLE_READOUT = freeze({ x: 218, y: 195, width: 54, height: 12 });
+function table(p) {
+  const { poly: q, rect: r, line: l, oval: o } = p, glass = "#000000";
+  o(247, 273, 70, 9, "#273d4540");
+  q([[211, 206], [278, 206], [277, 229], [262, 235], [224, 235], [211, 228]], "#8b8575");
+  q([[205, 248], [288, 248], [282, 275], [270, 280], [221, 280], [207, 274]], "#a59b87");
+  q([[211, 250], [275, 250], [273, 277], [221, 277], [211, 272]], "#c6bba4");
+  r(225, 253, 37, 23, "#55574e");
+  r(228, 255, 31, 19, C2.glass);
+  for (let j = 0; j < 4; j++) {
+    r(231, 257 + j * 4, 2, 2, "#90bbaa");
+    r(237, 257 + j * 4, 4, 1, "#769797");
+    r(249, 257 + j * 4, 6, 2, j % 2 ? "#b6c19a" : "#729d91");
+  }
+  const rim = [[216, 188], [275, 188], [291, 196], [291, 206], [273, 216], [273, 221], [305, 233], [305, 249], [286, 261], [207, 261], [184, 249], [184, 233], [215, 221], [215, 216], [198, 206], [198, 197]];
+  q(rim.map(([x, y]) => [x, y + 5]), "#736e64");
+  q(rim, C2.cream);
+  q([[217, 191], [274, 191], [287, 198], [287, 205], [268, 215], [268, 224], [300, 235], [300, 247], [284, 257], [210, 257], [189, 247], [189, 235], [220, 224], [220, 213], [202, 204], [202, 199]], glass);
+  trace(p, [[217, 193], [273, 193], [284, 199], [284, 204], [264, 215]], "#adbdaf");
+  trace(p, [[220, 226], [193, 237], [193, 246], [212, 254], [283, 254], [296, 246], [297, 237], [272, 226]], "#c6d0b8");
+  const { x: rx, y: ry, width: rw, height: rh } = TABLE_READOUT;
+  drawLcarsPanel({ rect: (x, y, w, h4, color) => r(rx + rw - x - w, ry + y, w, h4, color === "#101218" ? glass : color) }, 0, 0, rw, rh, { seed: 36, variant: "power" });
+  o(206, 241, 5, 4, "#91cde5");
+  l(206, 237, 206, 245, glass);
+  l(201, 241, 211, 241, glass);
+  o(206, 241, 2, 2, glass);
+  o(206, 241, 1, 1, "#91cde5");
+  for (const [y, color] of [[237, "#d8c788"], [243, "#b9a3d6"]]) {
+    r(216, y, 3, 3, color);
+    r(215, y + 1, 5, 1, color);
+  }
+  const outline = "#c4d4d7", circuit = "#537d9d", highlight = "#86b3ce", gold = "#baaa65";
+  trace(p, [[225, 241], [226, 237], [230, 233], [236, 231], [244, 231], [250, 233], [254, 237], [255, 241], [254, 245], [250, 249], [244, 251], [236, 251], [230, 249], [226, 245], [225, 241]], outline);
+  for (const side of [-1, 1]) {
+    const path = (points, color) => trace(p, points.map(([x, y]) => [x, 241 + side * y]), color);
+    path([[254, 4], [259, 3], [264, 6], [276, 6], [279, 5], [279, 0]], outline);
+    path([[261, 7], [260, 8], [261, 10], [279, 10], [281, 9], [281, 7], [280, 6], [262, 6], [261, 7]], outline);
+    path([[264, 8], [278, 8]], highlight);
+    path([[253, 2], [269, 2], [274, 0]], highlight);
+    path([[256, 4], [266, 4], [271, 6]], circuit);
+    path([[227, 2], [233, 2], [233, 7], [237, 7], [237, 3]], circuit);
+    path([[229, 5], [231, 5], [231, 3]], highlight);
+    path([[241, 3], [241, 8], [246, 8], [246, 5], [251, 5]], circuit);
+    path([[245, 2], [249, 2], [249, 6]], highlight);
+    path([[235, 9], [235, 5]], circuit);
+    r(234, 241 + side * 5, 3, 1, gold);
+    r(247, 241 + side * 7, 3, 1, gold);
+  }
+  l(227, 241, 277, 241, circuit);
+  l(239, 232, 239, 250, highlight);
+  trace(p, [[239, 239], [241, 239], [242, 241], [241, 243], [239, 243], [238, 241], [239, 239]], outline);
+  r(240, 241, 1, 1, highlight);
+  r(224, 230, 3, 1, gold);
+  r(284, 233, 3, 1, gold);
+  r(284, 235, 2, 1, highlight);
+  r(224, 252, 3, 1, gold);
+  r(284, 248, 3, 1, gold);
+  r(284, 250, 2, 1, highlight);
+  q([[225, 221], [238, 202], [250, 201], [269, 220], [265, 228], [225, 228]], "#b7ae9c");
+  q([[239, 202], [250, 202], [267, 220], [239, 220]], "#e1d6be");
+  q([[227, 220], [239, 205], [239, 220]], "#776e63");
+  panel2(p, 244, 211, 15, 8, 22, 0, "systems");
+  l(227, 225, 265, 225, C2.ivory, 2);
+  l(207, 261, 286, 261, "#ece0c4");
+}
+function engineeringFloor(p) {
+  const { rect: r, poly: q } = p, random = rng(3601);
+  r(0, 116, 480, 184, C2.sand);
+  const carpet = [
+    [76, 300],
+    [128, 208],
+    [126, 205],
+    [122, 203],
+    [116, 202],
+    [99, 203],
+    [100, 186],
+    [184, 186],
+    [193, 184],
+    [199, 181],
+    [206, 172],
+    [314, 172],
+    [318, 181],
+    [322, 184],
+    [329, 186],
+    [399, 186],
+    [398, 203],
+    [382, 202],
+    [376, 203],
+    [373, 205],
+    [371, 208],
+    [413, 300]
+  ];
+  q(carpet, "#526f89");
+  p.c.save();
+  p.c.beginPath();
+  carpet.forEach(([x, y], i) => i ? p.c.lineTo(x, y) : p.c.moveTo(x, y));
+  p.c.closePath();
+  p.c.clip();
+  for (let i = 0; i < 820; i++) {
+    const x = 76 + random() * 337, y = 172 + random() * 128;
+    r(x, y, 1, 1, i % 2 ? "#c3d4de0a" : "#152b4412");
+  }
+  p.c.restore();
+}
+function drawEngineering(ctx) {
+  const p = painter(ctx), { rect: r, poly: q, line: l } = p;
+  r(0, 0, 480, 300, "#4a4c48");
+  engineeringFloor(p);
+  q([[0, 27], [94, 55], [106, 150], [102, 187], [0, 231]], "#a79b88");
+  q([[480, 27], [398, 55], [385, 150], [387, 187], [480, 231]], "#a79b88");
+  q([[0, 64], [94, 66], [99, 136], [0, 199]], "#b6a993");
+  q([[480, 64], [398, 66], [389, 136], [480, 199]], "#b6a993");
+  chamber(p);
+  computerAccess(p);
+  isolinearBay(p);
+  workbaySoffit(p);
+  q([[0, 72], [90, 73], [107, 91], [100, 165], [90, 205], [25, 239], [0, 225]], "#aaa08b");
+  q([[480, 72], [398, 73], [390, 91], [387, 165], [390, 205], [455, 239], [480, 225]], "#aaa08b");
+  q([[86, 73], [99, 87], [105, 150], [98, 181], [91, 204], [85, 207], [94, 161], [90, 95]], C2.cream);
+  q([[399, 73], [389, 88], [383, 149], [388, 181], [389, 204], [397, 209], [394, 163], [396, 94]], C2.cream);
+  wallBays(p);
+  wallBays(p, true);
+  sideConsole(p);
+  sideConsole(p, true);
+  sideConsole(p, false, true);
+  sideConsole(p, true, true);
+  q([[0, 0], [480, 0], [358, 58], [159, 58]], "#77786e");
+  for (const points of [
+    [[31, 5], [123, 5], [163, 24], [83, 24]],
+    [[143, 5], [229, 5], [238, 24], [177, 24]],
+    [[251, 5], [338, 5], [311, 24], [251, 24]],
+    [[357, 5], [449, 5], [393, 24], [328, 24]],
+    [[88, 33], [168, 33], [193, 48], [135, 48]],
+    [[186, 33], [238, 33], [242, 48], [208, 48]],
+    [[253, 33], [307, 33], [292, 48], [253, 48]],
+    [[322, 33], [391, 33], [354, 48], [306, 48]]
+  ]) q(points, "#e9ecdb");
+  for (const [left, right, top, shoulder] of [[9, 471, 0, 42], [86, 403, 27, 60]]) {
+    q([[left - 8, shoulder + 14], [left + 16, top], [right - 16, top], [right + 7, shoulder + 14], [right, shoulder + 17], [right - 22, top + 8], [left + 22, top + 8], [left - 1, shoulder + 17]], "#7e776a");
+    trace(p, [[left - 6, shoulder + 12], [left + 18, top + 3], [right - 18, top + 3], [right + 4, shoulder + 12]], C2.cream, 3);
+  }
+  coreBulkheadRim(p);
+  q([[0, 49], [7, 49], [8, 195], [18, 212], [9, 218], [0, 203]], C2.cream);
+  q([[480, 49], [473, 49], [472, 195], [462, 212], [471, 218], [480, 203]], C2.cream);
+  table(p);
+}
+function drawEngineeringForeground(ctx) {
+  const p = painter(ctx);
+  p.poly([[207, 260], [286, 260], [282, 265], [212, 265]], "#afa38b");
+  p.line(208, 260, 285, 260, "#efe3c6");
+}
+function drawEngineeringEffects(ctx, time, options = {}) {
+  const p = painter(ctx), t = seconds(time), pulse = unit(options.pulse), diagnostic = unit(options.diagnostic);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(175, 61, 171, 100);
+  ctx.clip();
+  drawHallCore(p, t, pulse);
+  ctx.restore();
+  rail(p);
+  if (diagnostic > 0) {
+    const y = 235 + Math.round(diagnostic * 13);
+    p.line(210, y, 282, y, "#a4e5dc");
+    p.rect(TABLE_READOUT.x + 1, TABLE_READOUT.y + 1, 3, 2, "#e9dac0");
+  }
+  if (options.night) for (const [x, y] of WORKBAY_SPOTS) p.oval(x, y, 2, 1, "#c4cabe");
+}
+
+// src/art/ship-effects.js
+var BRIDGE_HOTSPOTS = Object.freeze([
+  { id: "bridge-lift", label: "Turbolift", rect: [103, 84, 42, 64], action: "lift" },
+  { id: "aft-lcars", label: "LCARS diagnostic sweep", rect: [153, 91, 174, 43], action: "diagnostic" }
+]);
+function drawBridgeEffects(ctx, t, { door = 0, diagnostic = 0 } = {}) {
+  const p = painter(ctx);
+  if (door > 0) {
+    const x = 105, y = 88, w = 38, height = 55, gap = Math.round(door * 17);
+    p.rect(x, y, w, height, "#161d27");
+    p.rect(x + 7, y + 5, 24, 47, "#35333a");
+    p.rect(x + 10, y + 7, 18, 2, "#e4d8bc");
+    p.rect(x, y, 19 - gap, height, "#726b6c");
+    p.rect(x + 19 + gap, y, 19 - gap, height, "#847977");
+    p.rect(x, y + height, w, 3, "#bdaf99");
+    p.rect(x + 16, y - 3, 7, 2, "#b3d1dd");
+  }
+  if (diagnostic > 0) {
+    const x = 156 + Math.floor(t * 19) % 162;
+    p.rect(x, 96, 2, 32, "#cbeaf0");
+    p.rect(287, 100, 20, 2, "#bad7d6");
+  }
+}
+
+// src/ship-layout.js
+var leftExit2 = [[104, 230], [104, 155], [123, 155]];
+var bridgeStations = [
+  { slot: 0, route: [[240, 217], [146, 230], ...leftExit2], facing: "south" },
+  // Seat anchors remain the imported-v1 anchors. Release sideways from the
+  // bent-knee seated pose before walking; reverse that release only after arrival.
+  // stand is NOT a walking waypoint from the seat (the own-chair/console overlap
+  // at the seated anchor is intentional). The aisle stays behind each desk base.
+  { slot: 1, stand: [137, 239], route: [[100, 239], [100, 230], ...leftExit2], facing: "south" },
+  { slot: 2, stand: [343, 239], route: [[381, 239], [381, 294], [99, 294], [99, 230], ...leftExit2], facing: "south" },
+  { slot: 3, route: [[196, 219], [146, 230], ...leftExit2], facing: "south" },
+  { slot: 4, route: [[284, 219], [146, 230], ...leftExit2], facing: "south" },
+  { slot: 8, route: [[67, 216], ...leftExit2], facing: "west" },
+  { slot: 9, route: [[413, 220], [381, 230], [381, 294], [99, 294], [99, 230], ...leftExit2], facing: "east" }
+].map(({ slot, stand, route, facing }, index) => ({ id: `bridge-${index}`, x: BRIDGE_ANCHORS[slot][0], y: BRIDGE_ANCHORS[slot][1], facing, seated: slot < 5, ...stand ? { stand } : {}, exitPath: route }));
+var SHIP_ROOMS = Object.freeze({
+  bridge: { id: "bridge", title: "Bridge", stations: bridgeStations, portal: { x: 123, y: 140, approach: [123, 155], rect: [103, 84, 42, 64] } },
+  engineering: { id: "engineering", title: "Engineering", stations: ENGINEERING_STATIONS, portal: ENGINEERING_PORTAL }
+});
+
 // src/art/characters.js
 var SKINS = [["#e8b58a", "#c58d6b", "#f5caa0"], ["#ba8768", "#8b5d49", "#d4a27d"], ["#91684f", "#654637", "#b38a68"], ["#e2c6a0", "#b8a180", "#f2d6af"]];
 var HAIR = ["#574030", "#332e2e", "#815437", "#b58e54", "#655951", "#342e36"];
@@ -1098,12 +1781,16 @@ var STATUS = { active: { color: "#90bb94", glyph: "\u203A" }, waiting: { color: 
 function identity(id) {
   return Array.from(String(id)).reduce((n, c, i) => n + c.codePointAt(0) * (i + 1), 0);
 }
-function human(p, x, y, agent, theme, t, team, walk, teamIndex = 0, seated = false) {
+function human(p, x, y, agent, theme, t, team, walk, teamIndex = 0, seated = false, facing = "south", pose = null) {
   const n = Number.isSafeInteger(agent.slot) && agent.slot >= 0 ? agent.slot : identity(agent.id), skin = SKINS[n % SKINS.length], hair = HAIR[n % HAIR.length];
   const isCrew = theme === "bridge";
   const shirt = isCrew ? [["#b9575d", "#833d49"], ["#c9a15c", "#9a7947"], ["#639797", "#487373"]][n % 3] : SHIRTS[n % 6];
+  if (isCrew && facing !== "south") {
+    crewProfile(p, x, y, agent, t, n, skin, hair, shirt, walk, seated, facing, pose);
+    return;
+  }
   const { rect: r, poly: q, line: l, oval: o } = p;
-  const phase = t * 3.6 + n % 11, step = walk ? Math.sin(phase * 2) : 0, bob = walk ? Math.round(Math.abs(step)) : 0;
+  const phase = t * 3.6 + n % 11, step = walk ? t === 0 && pose === "walk" ? 0 : Math.sin(phase * 2) : 0, bob = walk ? Math.round(Math.abs(step)) : 0;
   y -= bob;
   const active = agent.status === "active", wait = agent.status === "waiting", error = agent.status === "error", done = agent.status === "done";
   if (seated) {
@@ -1142,7 +1829,7 @@ function human(p, x, y, agent, theme, t, team, walk, teamIndex = 0, seated = fal
     r(x + 4, y - 20, 2, 3, "#ece4c8");
   }
   p.c.save();
-  const glance = t === 0 ? 0 : wait ? Math.round(Math.sin(t * 0.65 + n)) : error ? Math.round(Math.sin(t * 0.85 + n)) : 0;
+  const glance = t === 0 || pose ? 0 : wait ? Math.round(Math.sin(t * 0.65 + n)) : error ? Math.round(Math.sin(t * 0.85 + n)) : 0;
   p.c.translate(glance, 0);
   r(x - 2, y - 28, 5, 4, skin[1]);
   r(x - 6, y - 34, 12, 9, hair);
@@ -1171,13 +1858,49 @@ function human(p, x, y, agent, theme, t, team, walk, teamIndex = 0, seated = fal
     r(x + 5, y - 30, 1, 3, "#524e46");
     r(x - 1, y - 30, 2, 1, "#524e46");
   }
-  if (error) {
+  if (error && !pose) {
     r(x - 4, y - 32, 3, 1, hair);
     r(x + 2, y - 33, 3, 1, hair);
   }
   p.c.restore();
   const tap = active ? Math.round(Math.sin(phase * 2) * 1.5) : 0;
-  if (team) {
+  if (isCrew && pose) {
+    const gesture = t === 0 ? 0 : Math.round(Math.sin(t * 1.8 + n));
+    if (pose === "walk") {
+      r(x - 10, y - 23, 4, 10 + Math.round(step * 2), shirt[1]);
+      r(x + 7, y - 23, 4, 10 - Math.round(step * 2), shirt[0]);
+      r(x - 10, y - 13 + Math.round(step * 2), 4, 3, skin[0]);
+      r(x + 7, y - 13 - Math.round(step * 2), 4, 3, skin[2]);
+    } else if (pose === "padd") {
+      r(x - 10, y - 23, 4, 8, shirt[1]);
+      r(x + 7, y - 23, 4, 8, shirt[0]);
+      r(x - 5, y - 21, 10, 11, "#343e4b");
+      r(x - 3, y - 19, 6, 6, "#8da9b2");
+      r(x - 2, y - 18, 4, 1, "#d3c7a1");
+      r(x - 2, y - 13, 3, 1, "#d7ad7c");
+      r(x - 7, y - 16, 4, 3, skin[0]);
+      r(x + 3, y - 17 + gesture, 4, 3, skin[2]);
+    } else if (pose === "inspect") {
+      r(x - 10, y - 23, 4, 11, shirt[1]);
+      r(x - 10, y - 13, 4, 3, skin[0]);
+      l(x + 7, y - 22, x + 12, y - 25 + gesture, shirt[0], 3);
+      r(x + 11, y - 28 + gesture, 3, 4, skin[2]);
+      r(x + 12, y - 31 + gesture, 3, 5, "#444d5a");
+      r(x + 12, y - 30 + gesture, 2, 2, "#a6bac1");
+    } else if (pose === "work") {
+      r(x - 10, y - 23, 4, 8, shirt[1]);
+      r(x + 7, y - 23, 4, 8, shirt[0]);
+      l(x - 8, y - 16, x - 5, y - 13 + gesture, shirt[1], 3);
+      l(x + 8, y - 16, x + 5, y - 13 - gesture, shirt[0], 3);
+      r(x - 6, y - 13 + gesture, 4, 3, skin[0]);
+      r(x + 3, y - 13 - gesture, 4, 3, skin[2]);
+    } else {
+      r(x - 10, y - 23, 4, 11, shirt[1]);
+      r(x + 7, y - 23, 4, 11, shirt[0]);
+      r(x - 10, y - 13, 4, 3, skin[0]);
+      r(x + 7, y - 13, 4, 3, skin[2]);
+    }
+  } else if (team) {
     const cycle = (t * 0.68 + teamIndex * 0.27) % 1, angle = t === 0 ? -0.85 : cycle < 0.28 ? -0.9 - cycle * 2 : cycle < 0.48 ? -1.46 + (cycle - 0.28) * 11 : cycle < 0.7 ? 0.74 : 0.74 - (cycle - 0.7) * 5.3;
     const hx = x + 8, hy = y - 20, ex = hx + Math.cos(angle) * 22, ey = hy + Math.sin(angle) * 22;
     l(x + 6, y - 22, hx + 3, hy, shirt[0], 4);
@@ -1210,6 +1933,140 @@ function human(p, x, y, agent, theme, t, team, walk, teamIndex = 0, seated = fal
     r(x - 10, y - 13, 4, 4, skin[0]);
     r(x + 7, y - (done ? 19 : 13), 4, 4, skin[2]);
   }
+}
+function crewProfile(p, x, y, agent, t, n, skin, hair, shirt, walk, seated, facing, pose) {
+  const { rect: r, line: l, poly: q } = p, north = facing === "north";
+  const step = walk && t > 0 ? Math.sin(t * 7.2 + n % 11 * 2) : 0, swing = Math.round(step * 3);
+  const gesture = t === 0 ? 0 : Math.round(Math.sin(t * 1.8 + n));
+  const action = walk ? "walk" : pose || (agent.status === "active" ? "work" : agent.status);
+  y -= walk ? Math.round(Math.abs(step)) : 0;
+  p.c.save();
+  if (facing === "west") {
+    p.c.translate(x * 2, 0);
+    p.c.scale(-1, 1);
+  }
+  if (north) {
+    if (seated) {
+      q([[x - 7, y - 14], [x - 1, y - 13], [x - 5, y - 6], [x - 10, y - 6]], "#363941");
+      q([[x + 1, y - 13], [x + 7, y - 14], [x + 10, y - 6], [x + 5, y - 6]], "#292f39");
+      r(x - 10, y - 7, 5, 5, "#363941");
+      r(x + 5, y - 7, 5, 5, "#292f39");
+      r(x - 11, y - 3, 6, 3, "#282a2e");
+      r(x + 5, y - 3, 6, 3, "#25272a");
+    } else {
+      r(x - 7, y - 14, 6, 12, "#363941");
+      r(x + 1, y - 14, 6, 12, "#292f39");
+      r(x - 6, y - 11, 2, 7, "#58606a");
+      r(x + 2, y - 11, 2, 7, "#444c58");
+      r(x - 8, y - 3 + swing, 8, 3, "#282a2e");
+      r(x + 1, y - 3 - swing, 8, 3, "#25272a");
+    }
+    q([[x - 6, y - 25], [x + 6, y - 25], [x + 9, y - 21], [x + 8, y - 13], [x - 8, y - 13], [x - 9, y - 21]], "#39383a");
+    r(x - 6, y - 24, 12, 11, shirt[0]);
+    r(x - 6, y - 22, 3, 9, shirt[1]);
+    r(x + 5, y - 22, 2, 9, shirt[1]);
+    r(x - 7, y - 25, 14, 4, "#282d34");
+    r(x - 7, y - 14, 14, 2, "#272e38");
+    r(x - 2, y - 28, 5, 4, skin[1]);
+    r(x - 7, y - 31, 14, 5, skin[1]);
+    r(x - 6, y - 35, 12, 10, hair);
+    r(x - 4, y - 36, 8, 2, hair);
+    r(x - 3, y - 35, 5, 1, n % 3 === 0 ? "#aa8250" : "#78604b");
+    if (n % 4 === 0) {
+      r(x - 7, y - 28, 3, 4, hair);
+      r(x + 5, y - 28, 3, 4, hair);
+    }
+    if (action === "padd") {
+      r(x + 8, y - 23, 5, 8, "#343e4b");
+      r(x + 10, y - 22, 2, 4, "#8da9b2");
+    }
+    if (action === "inspect") {
+      r(x + 12, y - 31 + gesture, 3, 6, "#444d5a");
+      r(x + 13, y - 30 + gesture, 2, 2, "#a6bac1");
+    }
+    const reach = action === "work" || action === "padd", raised = action === "inspect" || action === "error";
+    r(x - 10, y - 23, 4, reach ? 7 : 11 + (walk ? swing : 0), shirt[1]);
+    r(x - 10, y - (reach ? 18 : 13) + (walk ? swing : 0), 4, 3, skin[0]);
+    if (raised) {
+      l(x + 7, y - 22, x + 12, y - 27 + gesture, shirt[0], 3);
+      r(x + 11, y - 28 + gesture, 3, 4, skin[2]);
+    } else {
+      r(x + 7, y - 23, 4, reach ? 7 : 11 - (walk ? swing : 0), shirt[0]);
+      r(x + 7, y - (reach ? 18 : 13) - (walk ? swing : 0) + (reach ? gesture : 0), 4, 3, skin[2]);
+    }
+  } else {
+    if (seated) {
+      r(x - 3, y - 14, 13, 5, "#292f39");
+      r(x + 6, y - 10, 5, 8, "#292f39");
+      r(x + 6, y - 3, 10, 3, "#25272a");
+    } else {
+      r(x - 3 - swing, y - 14, 5, 12, "#292f39");
+      r(x - 3 - swing, y - 3, 8, 3, "#25272a");
+    }
+    r(x - 2, y - 24, 4, 11, shirt[1]);
+    r(x, y - 14, 4, 3, skin[1]);
+    if (seated) {
+      r(x - 5, y - 14, 12, 5, "#363941");
+      r(x + 3, y - 10, 5, 8, "#363941");
+      r(x + 4, y - 9, 2, 6, "#58606a");
+      r(x + 3, y - 3, 10, 3, "#282a2e");
+    } else {
+      r(x - 5 + swing, y - 14, 6, 12, "#363941");
+      r(x - 4 + swing, y - 11, 2, 8, "#58606a");
+      r(x - 5 + swing, y - 3, 9, 3, "#282a2e");
+    }
+    q([[x - 4, y - 25], [x + 3, y - 25], [x + 6, y - 21], [x + 4, y - 13], [x - 5, y - 13], [x - 6, y - 21]], "#39383a");
+    r(x - 4, y - 24, 8, 11, shirt[0]);
+    r(x - 4, y - 22, 3, 9, shirt[1]);
+    r(x - 5, y - 25, 9, 4, "#282d34");
+    r(x - 5, y - 14, 10, 2, "#272e38");
+    r(x + 3, y - 20, 1, 3, "#e3d29d");
+    r(x - 1, y - 28, 4, 4, skin[1]);
+    r(x - 5, y - 34, 10, 10, hair);
+    r(x, y - 33, 6, 9, skin[0]);
+    r(x + 2, y - 32, 4, 5, skin[2]);
+    r(x + 5, y - 29, 3, 2, skin[0]);
+    r(x + 2, y - 25, 4, 1, skin[1]);
+    r(x - 4, y - 36, 8, 4, hair);
+    r(x - 5, y - 34, 4, 8, hair);
+    r(x - 3, y - 35, 4, 1, n % 3 === 0 ? "#aa8250" : "#78604b");
+    r(x - 1, y - 29, 2, 3, skin[1]);
+    const blink = t > 0 && Math.floor(t * 2 + n) % 17 === 0;
+    r(x + 3, y - 30, 2, blink ? 1 : 2, "#333139");
+    if (n % 5 === 0) {
+      r(x + 1, y - 31, 6, 1, "#524e46");
+      r(x + 6, y - 30, 1, 3, "#524e46");
+    }
+    if (n % 4 === 0) r(x - 5, y - 28, 3, 4, hair);
+    if (action === "padd") {
+      r(x + 7, y - 23, 7, 10, "#343e4b");
+      r(x + 9, y - 21, 3, 5, "#8da9b2");
+      r(x + 9, y - 20, 2, 1, "#d3c7a1");
+      l(x - 2, y - 22, x + 2, y - 16, shirt[0], 4);
+      l(x + 2, y - 16, x + 8, y - 17, shirt[0], 3);
+      r(x + 8, y - 18 + gesture, 4, 3, skin[0]);
+    } else if (action === "inspect" || action === "error") {
+      l(x - 2, y - 22, x + 5, y - 20, shirt[0], 4);
+      l(x + 5, y - 20, x + 9, y - 27 + gesture, shirt[0], 3);
+      r(x + 8, y - 29 + gesture, 4, 4, skin[0]);
+      if (action === "inspect") {
+        r(x + 10, y - 32 + gesture, 3, 5, "#444d5a");
+        r(x + 11, y - 31 + gesture, 2, 2, "#a6bac1");
+      }
+    } else if (action === "work") {
+      l(x - 2, y - 22, x + 3, y - 19, shirt[0], 4);
+      l(x + 3, y - 19, x + 11, y - 21 + gesture, shirt[0], 3);
+      r(x + 11, y - 22 + gesture, 4, 3, skin[0]);
+    } else if (action === "waiting") {
+      l(x - 2, y - 22, x + 1, y - 15, shirt[0], 4);
+      r(x + 1, y - 16, 7, 3, shirt[1]);
+      r(x + 5, y - 17, 3, 3, skin[0]);
+    } else {
+      l(x - 2, y - 22, x - 2 + swing, y - 13, shirt[0], 4);
+      r(x - 2 + swing, y - 13, 4, 3, skin[0]);
+    }
+  }
+  p.c.restore();
 }
 function kitten(p, x, y, agent, t, walk) {
   const n = Number.isSafeInteger(agent.slot) && agent.slot >= 0 ? agent.slot : identity(agent.id), fur = FURS[n % 6], { rect: r, poly: q, line: l, oval: o } = p;
@@ -1289,34 +2146,41 @@ function drawAgent(ctx, item, theme, time, selected) {
   }
   if (theme === "cafe") kitten(p, x, y, agent, time, walking);
   else {
+    const crew = theme === "bridge", directed = crew && ["north", "south", "east", "west"].includes(item.facing), facing = directed ? item.facing : "south";
+    const walk = walking || crew && item.pose === "walk";
+    const pose = crew ? walk ? "walk" : ["work", "padd", "inspect"].includes(item.pose) ? item.pose : item.ambient === true ? "rest" : null : null;
+    const seated = crew && !walk && (typeof item.seated === "boolean" ? item.seated : item.index < 5);
+    const legacyTeam = team && !directed && !pose;
     ctx.save();
-    if (team && x > 391) {
+    if (legacyTeam && x > 391) {
       ctx.translate(x * 2, 0);
       ctx.scale(-1, 1);
     }
-    human(p, x, y, agent, theme, time, team && item.atStation, walking, item.teamIndex, theme === "bridge" && item.index < 5 && !walking);
+    human(p, x, y, agent, theme, time, legacyTeam && item.atStation, walk, item.teamIndex, seated, facing, pose);
     ctx.restore();
   }
 }
 function drawBadge(ctx, item, theme, selected) {
   const p = painter(ctx), status = item.agent.attention || item.agent.status, s = STATUS[status] || STATUS.unknown, x = item.x, y = item.y;
-  p.rect(x + 12, y - 40, 10, 10, "#393c38");
-  p.rect(x + 13, y - 39, 8, 8, s.color);
-  if (status === "active") {
-    p.line(x + 15, y - 37, x + 18, y - 35, "#35473d");
-    p.line(x + 18, y - 35, x + 15, y - 33, "#35473d");
-  } else if (status === "done") {
-    p.line(x + 14, y - 35, x + 16, y - 33, "#35473d");
-    p.line(x + 16, y - 33, x + 19, y - 37, "#35473d");
-  } else if (status === "error") {
-    p.rect(x + 16, y - 38, 2, 4, "#5d3730");
-    p.rect(x + 16, y - 33, 2, 1, "#5d3730");
-  } else if (status === "waiting") {
-    p.rect(x + 15, y - 38, 4, 1, "#634e30");
-    p.rect(x + 18, y - 37, 1, 2, "#634e30");
-    p.rect(x + 16, y - 35, 3, 1, "#634e30");
-    p.rect(x + 16, y - 33, 1, 1, "#634e30");
-  } else p.rect(x + 15, y - 35, 4, 1, "#544e50");
+  if (item.hideBadge !== true) {
+    p.rect(x + 12, y - 40, 10, 10, "#393c38");
+    p.rect(x + 13, y - 39, 8, 8, s.color);
+    if (status === "active") {
+      p.line(x + 15, y - 37, x + 18, y - 35, "#35473d");
+      p.line(x + 18, y - 35, x + 15, y - 33, "#35473d");
+    } else if (status === "done") {
+      p.line(x + 14, y - 35, x + 16, y - 33, "#35473d");
+      p.line(x + 16, y - 33, x + 19, y - 37, "#35473d");
+    } else if (status === "error") {
+      p.rect(x + 16, y - 38, 2, 4, "#5d3730");
+      p.rect(x + 16, y - 33, 2, 1, "#5d3730");
+    } else if (status === "waiting") {
+      p.rect(x + 15, y - 38, 4, 1, "#634e30");
+      p.rect(x + 18, y - 37, 1, 2, "#634e30");
+      p.rect(x + 16, y - 35, 3, 1, "#634e30");
+      p.rect(x + 16, y - 33, 1, 1, "#634e30");
+    } else p.rect(x + 15, y - 35, 4, 1, "#544e50");
+  }
   if (selected) {
     const name = String(item.agent.name || item.agent.id).slice(0, 21), width = Math.max(38, name.length * 3.8 + 12), left = Math.max(6, Math.min(474 - width, x - width / 2));
     p.rect(left, y + 8, width, 13, "#313a38");
@@ -1329,7 +2193,7 @@ function drawBadge(ctx, item, theme, selected) {
 var THEMES = Object.freeze([
   Object.freeze({ id: "office", title: "Office Space", subtitle: "Cubicles, coffee & a printer out back", accent: "#c2a77b", description: "A beige cubicle diorama with a sun-warmed service yard. Bats appear only for active, parent-linked teammates." }),
   Object.freeze({ id: "cafe", title: "Kitten Caf\xE9", subtitle: "A little sunshine. A lot of paw work.", accent: "#c8a56f", description: "Quadruped kittens, oak floors, coffee plants and a pastry counter in a sunlit neighborhood caf\xE9." }),
-  Object.freeze({ id: "bridge", title: "The Next Generation", subtitle: "A quieter kind of final frontier", accent: "#bda2ab", description: "An Enterprise-D\u2013inspired bridge: warm beige structure, rose carpet, wooden horseshoe and pastel LCARS." })
+  Object.freeze({ id: "bridge", title: "The Next Generation", subtitle: "Bridge & Main Engineering", accent: "#bda2ab", description: "An Enterprise-D\u2013inspired ship: warm bridge, luminous warp core, purposeful crew and playable LCARS." })
 ]);
 var CAPACITY = 12;
 var WORLD_SIZE = Object.freeze({ width: 960, height: 600 });
@@ -1347,7 +2211,7 @@ function teamGroups(agents) {
 }
 function createWorld(canvas, { onSelect = () => {
 }, onMetrics = () => {
-} } = {}) {
+}, ship = null } = {}) {
   if (!canvas?.getContext) throw new TypeError("createWorld requires a canvas");
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) throw new Error("Canvas2D is unavailable");
@@ -1365,7 +2229,10 @@ function createWorld(canvas, { onSelect = () => {
   };
   const scene = makeSurface(), sc = scene.getContext("2d");
   const backgrounds = /* @__PURE__ */ new Map(), positions = /* @__PURE__ */ new Map();
-  let state = { theme: "office", realm: null, agents: [], selectedId: null, reducedMotion: false, paused: false };
+  let state = { theme: "office", realm: null, agents: [], selectedId: null, reducedMotion: false, paused: false, shipMode: "live" };
+  const clockConsumer = /* @__PURE__ */ Symbol("ship renderer");
+  const isShip = () => Boolean(ship && state.theme === "bridge" && !state.realm);
+  const shipRoom = () => ship?.getSnapshot().room || "bridge";
   const characterStyle = () => state.realm?.characterStyle || state.theme;
   let width = 960, height = 600, dpr = 1, scale = 2, offsetX = 0, offsetY = 0, visible = true, destroyed = false;
   let frameId = null, lastFrame = -Infinity, lastTick = null, time = 0, regions = [], items = [], teamwork = null, backgroundBuilds = 0;
@@ -1373,30 +2240,46 @@ function createWorld(canvas, { onSelect = () => {
   const now = () => host2.performance?.now?.() ?? Date.now();
   const isVisible = () => visible && !doc?.hidden;
   const animate = () => !destroyed && isVisible() && !state.paused && !state.reducedMotion;
-  const report = () => ({ theme: state.theme, total: state.agents.length, visible: items.length, overflow: Math.max(0, state.agents.length - items.length), capacity: CAPACITY, visibleCount: items.length, totalCount: state.agents.length, overflowCount: Math.max(0, state.agents.length - items.length), fps, frameMs, renderMs: frameMs, frames: drawCount, backgroundBuilds, paused: state.paused, reducedMotion: state.reducedMotion, hidden: !isVisible(), teamwork: teamwork ? { ...teamwork, participants: [...teamwork.participants] } : null });
+  const report = () => {
+    const population = isShip() ? ship.getSnapshot().populations[state.shipMode] : null, overflow = population ? population.counts.offstage : Math.max(0, state.agents.length - items.length);
+    return { theme: state.theme, room: isShip() ? shipRoom() : null, total: state.agents.length, visible: items.length, overflow, capacity: isShip() ? SHIP_ROOMS[shipRoom()].stations.length : CAPACITY, visibleCount: items.length, totalCount: state.agents.length, overflowCount: overflow, roomCounts: population?.counts || null, fps, frameMs, renderMs: frameMs, frames: drawCount, backgroundBuilds, paused: state.paused, reducedMotion: state.reducedMotion, hidden: !isVisible(), teamwork: teamwork ? { ...teamwork, participants: [...teamwork.participants] } : null };
+  };
   const notify = () => {
     if (!destroyed) onMetrics(report());
   };
   function background() {
     if (state.realm) return state.realm.background;
-    if (!backgrounds.has(state.theme)) {
-      const surface = makeSurface();
-      drawBackground(surface.getContext("2d"), state.theme);
-      backgrounds.set(state.theme, surface);
+    const room = isShip() ? shipRoom() : null, key2 = room ? `ship:${room}` : state.theme;
+    if (!backgrounds.has(key2)) {
+      const surface = makeSurface(), context = surface.getContext("2d");
+      if (room === "engineering") drawEngineering(context);
+      else drawBackground(context, state.theme);
+      backgrounds.set(key2, surface);
       backgroundBuilds++;
     }
-    return backgrounds.get(state.theme);
+    return backgrounds.get(key2);
   }
   function bridgeLayer(name, draw) {
-    const key2 = `bridge:${name}`;
+    const night = isShip() && ship.getSnapshot().night, key2 = `bridge:${name}:${night}`;
     if (!backgrounds.has(key2)) {
-      const surface = makeSurface();
-      draw(surface.getContext("2d"));
+      const surface = makeSurface(), context = surface.getContext("2d");
+      draw(context);
+      if (night) {
+        context.globalCompositeOperation = "source-atop";
+        context.fillStyle = "#0a112c88";
+        context.fillRect(0, 0, W, H);
+        context.globalCompositeOperation = "source-over";
+      }
       backgrounds.set(key2, surface);
     }
     sc.drawImage(backgrounds.get(key2), 0, 0);
   }
   function setItems(themeChanged = false) {
+    if (isShip()) {
+      items = ship.getFrame(state.shipMode).items;
+      teamwork = null;
+      return;
+    }
     const selected = state.agents.find((a) => a.id === state.selectedId);
     let visibleAgents = state.agents.slice(0, CAPACITY);
     if (selected && !visibleAgents.some((a) => a.id === selected.id)) visibleAgents[CAPACITY - 1] = selected;
@@ -1457,34 +2340,54 @@ function createWorld(canvas, { onSelect = () => {
   function render(dt = 0) {
     if (destroyed || !isVisible()) return;
     const start = now();
-    move(dt);
+    if (isShip()) setItems();
+    else move(dt);
     sc.imageSmoothingEnabled = false;
     sc.clearRect(0, 0, W, H);
     sc.drawImage(background(), 0, 0);
+    const shipFrame = isShip() ? ship.getFrame(state.shipMode) : null, bridge = state.theme === "bridge" && (!shipFrame || shipFrame.room === "bridge");
+    if (shipFrame) {
+      if (shipFrame.effects.night) {
+        sc.fillStyle = "#0a112c88";
+        sc.fillRect(0, 0, W, H);
+      }
+      const effectPainter = { bridge: drawBridgeEffects, engineering: drawEngineeringEffects }[shipFrame.room];
+      effectPainter(sc, state.reducedMotion ? 0 : shipFrame.time, shipFrame.effects);
+    }
     const sorted = [...items].sort((a, b) => a.y - b.y || a.index - b.index);
     const t = state.reducedMotion ? 0 : time;
-    let railPainted = false, layerIndex = 0;
+    let railPainted = false, helmPainted = false, layerIndex = 0, shipForegroundPainted = false;
+    const shipForeground = shipFrame?.room === "engineering" ? { name: "engineering-foreground", draw: drawEngineeringForeground, afterY: 280 } : null;
     const style = characterStyle(), layers = state.realm?.layers || [];
     for (const item of sorted) {
+      if (shipForeground && !shipForegroundPainted && item.y >= shipForeground.afterY) {
+        bridgeLayer(shipForeground.name, shipForeground.draw);
+        shipForegroundPainted = true;
+      }
       while (layerIndex < layers.length && item.y >= layers[layerIndex].afterY) sc.drawImage(layers[layerIndex++].image, 0, 0);
-      if (state.theme === "bridge" && item.y >= 160 && !railPainted) {
+      if (bridge && item.y >= 160 && !railPainted) {
         bridgeLayer("rail", drawBridgeRail);
         railPainted = true;
+      }
+      if (bridge && shipFrame && item.y >= 286 && !helmPainted) {
+        bridgeLayer("helm", drawBridgeHelm);
+        helmPainted = true;
       }
       drawAgent(sc, item, style, t, item.agent.id === state.selectedId);
     }
     while (layerIndex < layers.length) sc.drawImage(layers[layerIndex++].image, 0, 0);
-    if (state.theme === "bridge") {
+    if (bridge) {
       if (!railPainted) bridgeLayer("rail", drawBridgeRail);
-      bridgeLayer("helm", drawBridgeHelm);
+      if (!helmPainted) bridgeLayer("helm", drawBridgeHelm);
     }
+    if (shipForeground && !shipForegroundPainted) bridgeLayer(shipForeground.name, shipForeground.draw);
     for (const item of sorted) drawBadge(sc, item, style, item.agent.id === state.selectedId);
     if (teamwork) {
       const p = painter(sc);
       p.rect(350, 93, 108, 13, "#65553ddd");
       p.text("LINKED TEAM WORK", 356, 97, "#ffebc0", 6);
     }
-    if (state.agents.length > CAPACITY) {
+    if (!shipFrame && state.agents.length > CAPACITY) {
       const p = painter(sc), s = `${items.length} IN SCENE \xB7 ${state.agents.length - items.length} IN LIST`;
       p.rect(151, 286, 181, 12, "#303c38");
       p.text(s, 160, 289, "#eee4c9", 6);
@@ -1514,6 +2417,7 @@ function createWorld(canvas, { onSelect = () => {
       time += dt;
       lastTick = stamp;
       lastFrame = stamp;
+      if (isShip()) ship.tick(stamp, state.shipMode, { consumer: clockConsumer });
       render(dt);
       if (stamp - lastNotify > 1e3) {
         lastNotify = stamp;
@@ -1536,7 +2440,7 @@ function createWorld(canvas, { onSelect = () => {
   }
   function update(patch = {}) {
     if (destroyed) return;
-    const before = state.theme, beforeRealm = state.realm, beforeSelection = state.selectedId;
+    const before = state.theme, beforeRealm = state.realm, beforeSelection = state.selectedId, beforeMode = state.shipMode;
     const id = Object.hasOwn(patch, "theme") ? typeof patch.theme === "object" ? patch.theme?.id : patch.theme : state.theme;
     const realm = Object.hasOwn(patch, "realm") ? patch.realm : state.realm;
     if (THEMES.some((t) => t.id === id)) {
@@ -1554,16 +2458,22 @@ function createWorld(canvas, { onSelect = () => {
       state.agents = (Array.isArray(patch.agents) ? patch.agents : []).filter((a) => a && a.id !== void 0 && a.id !== null && !seen.has(a.id) && seen.add(a.id)).map((a) => ({ ...a }));
     }
     for (const key2 of ["selectedId", "reducedMotion", "paused"]) if (Object.hasOwn(patch, key2)) state[key2] = key2 === "selectedId" ? patch[key2] : Boolean(patch[key2]);
+    if (Object.hasOwn(patch, "shipMode")) state.shipMode = patch.shipMode === "demo" ? "demo" : "live";
     if (Object.hasOwn(patch, "visible")) visible = Boolean(patch.visible);
+    if (before !== state.theme || beforeMode !== state.shipMode) ship?.releaseClock(clockConsumer);
+    if (isShip()) {
+      if (Object.hasOwn(patch, "agents")) ship.sync(patch.agents, state.shipMode);
+      ship.tick(now(), state.shipMode, { paused: state.paused, reducedMotion: state.reducedMotion, hidden: !isVisible(), consumer: clockConsumer });
+    }
     setItems(before !== state.theme || beforeRealm !== state.realm);
     if (!request || !animate() || frameId === null || before !== state.theme || beforeRealm !== state.realm || beforeSelection !== state.selectedId) render();
     sync();
     notify();
   }
-  function resize(w, h3, pixelRatio = host2.devicePixelRatio || 1) {
+  function resize(w, h4, pixelRatio = host2.devicePixelRatio || 1) {
     if (destroyed) return;
     width = Math.max(1, Number(w) || 960);
-    height = Math.max(1, Number(h3) || 600);
+    height = Math.max(1, Number(h4) || 600);
     dpr = Math.max(1, Math.min(4, Number(pixelRatio) || 1));
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
@@ -1580,18 +2490,34 @@ function createWorld(canvas, { onSelect = () => {
     }
     return null;
   }
+  function getSceneRegions() {
+    if (!isShip()) return [];
+    const hotspots = { bridge: BRIDGE_HOTSPOTS, engineering: ENGINEERING_HOTSPOTS }[shipRoom()];
+    return hotspots.map((h4) => {
+      const [x, y, w, hgt] = h4.rect || [h4.x, h4.y, h4.width, h4.height];
+      return { ...h4, x: offsetX + x * scale, y: offsetY + y * scale, width: w * scale, height: hgt * scale };
+    });
+  }
+  function sceneHit(x, y) {
+    return getSceneRegions().find((r) => x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height);
+  }
   function select(event) {
     const r = canvas.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    const id = hitTest((event.clientX - r.left) * width / r.width, (event.clientY - r.top) * height / r.height);
+    const x = (event.clientX - r.left) * width / r.width, y = (event.clientY - r.top) * height / r.height, id = hitTest(x, y);
     if (id !== null) onSelect(id);
+    else {
+      const hotspot = sceneHit(x, y);
+      if (hotspot) ship.trigger(hotspot.action);
+    }
   }
   function hover(event) {
     if (!canvas.style) return;
-    const r = canvas.getBoundingClientRect();
-    canvas.style.cursor = hitTest((event.clientX - r.left) * width / (r.width || 1), (event.clientY - r.top) * height / (r.height || 1)) === null ? "default" : "pointer";
+    const r = canvas.getBoundingClientRect(), x = (event.clientX - r.left) * width / (r.width || 1), y = (event.clientY - r.top) * height / (r.height || 1);
+    canvas.style.cursor = hitTest(x, y) !== null || sceneHit(x, y) ? "pointer" : "default";
   }
   function visibilityChanged() {
+    if (isShip()) ship.tick(now(), state.shipMode, { paused: state.paused, reducedMotion: state.reducedMotion, hidden: !isVisible(), consumer: clockConsumer });
     if (isVisible()) render();
     sync();
     notify();
@@ -1601,9 +2527,19 @@ function createWorld(canvas, { onSelect = () => {
     visible = Boolean(value);
     visibilityChanged();
   }
+  const stopShip = ship?.subscribe(() => {
+    if (isShip()) {
+      if (state.reducedMotion && !state.paused && isVisible()) ship.tick(now(), state.shipMode, { reducedMotion: true, consumer: clockConsumer });
+      setItems();
+      if (!animate()) render();
+      notify();
+    }
+  });
   function destroy() {
     if (destroyed) return;
     destroyed = true;
+    stopShip?.();
+    ship?.releaseClock(clockConsumer);
     if (frameId !== null && cancel) cancel(frameId);
     frameId = null;
     canvas.removeEventListener("pointerdown", select);
@@ -1622,8 +2558,8 @@ function createWorld(canvas, { onSelect = () => {
   doc?.addEventListener?.("visibilitychange", visibilityChanged);
   resize(canvas.clientWidth || 960, canvas.clientHeight || 600, host2.devicePixelRatio || 1);
   sync();
-  return { update, resize, setVisible, destroy, hitTest, getMetrics: report, getAgentRegions: () => regions.map((r) => ({ ...r })), render: () => render(), get capacity() {
-    return CAPACITY;
+  return { update, resize, setVisible, destroy, hitTest, getMetrics: report, getAgentRegions: () => regions.map((r) => ({ ...r })), getSceneRegions, render: () => render(), get capacity() {
+    return isShip() ? SHIP_ROOMS[shipRoom()].stations.length : CAPACITY;
   } };
 }
 
@@ -1739,9 +2675,9 @@ function png(value) {
   if (!ended) fail("PNG is missing IEND");
   return value;
 }
-function freeze(value) {
+function freeze2(value) {
   if (value && typeof value === "object") {
-    for (const child of Object.values(value)) freeze(child);
+    for (const child of Object.values(value)) freeze2(child);
     Object.freeze(value);
   }
   return value;
@@ -1784,7 +2720,7 @@ function validateRealmPackage(input) {
     finite(layer.afterY, 0, 300, "layer afterY");
     png(layer.image);
   }
-  return freeze(p);
+  return freeze2(p);
 }
 function browserDecodeImage(src) {
   return new Promise((resolve, reject) => {
@@ -2007,18 +2943,616 @@ var styles = `
 @media(prefers-reduced-motion:reduce){.pw *{scroll-behavior:auto!important;transition:none!important}}
 `;
 
-// src/app.js
+// src/ship-controls.js
+import React, { useId, useState, useSyncExternalStore } from "react";
+import { Button } from "@hermes/plugin-sdk";
+
+// src/ship.js
+var SHIP_ROOM_LABELS = Object.freeze({ bridge: "Bridge", engineering: "Engineering" });
+var ROOM_IDS = Object.keys(SHIP_ROOM_LABELS);
+var ORDER = ["bridge", "bridge", "engineering", "bridge", "engineering", "bridge", "engineering"];
+var DURATIONS = { preparing: 0.3, seating: 0.3, opening: 0.45, crossing: 0.6, closing: 0.4, transit: 1.1, "arrival-opening": 0.45, emerging: 0.6, "arrival-closing": 0.4 };
+var clamp2 = (n) => Math.max(0, Math.min(1, n));
+var portalFacing = (portal, inward) => {
+  const dx = (portal.x - portal.approach[0]) * (inward ? 1 : -1), dy = (portal.y - portal.approach[1]) * (inward ? 1 : -1);
+  return Math.abs(dx) > Math.abs(dy) ? dx > 0 ? "east" : "west" : dy > 0 ? "south" : "north";
+};
+var crossingTime = (portal) => Math.max(DURATIONS.crossing, Math.hypot(portal.x - portal.approach[0], portal.y - portal.approach[1]) / 42);
+var attentive = (a) => ["waiting", "error"].includes(a.attention) || ["waiting", "error"].includes(a.status);
+var resting = (a) => ["idle", "done"].includes(a.status) && a.verified !== false && !attentive(a);
+var freshPopulation = () => ({ records: /* @__PURE__ */ new Map(), queue: [], trip: null, time: 0, lastStamp: null, nextIdle: 15, source: null, drivers: /* @__PURE__ */ new Map() });
+function createShip({ rooms, storage = null } = {}) {
+  if (!rooms || ROOM_IDS.some((id) => !rooms[id]?.stations?.length || !rooms[id]?.portal)) throw new TypeError("Ship needs Bridge and Engineering layouts");
+  let saved;
+  try {
+    saved = storage?.get("ship-settings-v1");
+  } catch {
+  }
+  let settings = { room: ROOM_IDS.includes(saved?.room) ? saved.room : "bridge", night: saved?.night === true, energy: ["quiet", "normal", "playful"].includes(saved?.energy) ? saved.energy : "normal" };
+  const populations = { live: freshPopulation(), demo: freshPopulation() }, listeners = /* @__PURE__ */ new Set(), selectedIds = { live: null, demo: null };
+  let snapshot, revision = 0, lastAction = "", disposed = false, visualTime = 0, visualStamp = null;
+  const effects = { pulse: 0, diagnostic: 0, lift: 0 };
+  const effectLength = { pulse: 3, diagnostic: 4, lift: 1.5 };
+  const getPopulation = (mode) => populations[mode === "demo" ? "demo" : "live"];
+  function rebaseInactiveClocks() {
+    for (const p of Object.values(populations)) if (![...p.drivers.values()].some(Boolean)) p.lastStamp = null;
+    if (Object.values(populations).every((p) => p.lastStamp === null)) visualStamp = null;
+  }
+  function summarize(p) {
+    const counts2 = { bridge: 0, engineering: 0, transit: 0, offstage: 0 };
+    const locations = [...p.records.values()].map((r) => {
+      counts2[r.room]++;
+      return Object.freeze({ id: r.agent.id, room: r.room, destination: p.trip?.id === r.agent.id ? p.trip.to : null, phase: r.phase });
+    });
+    return Object.freeze({ total: p.records.size, counts: Object.freeze(counts2), locations: Object.freeze(locations), activeTripId: p.trip?.id ?? null });
+  }
+  function publish() {
+    if (disposed) return;
+    snapshot = Object.freeze({ ...settings, revision: ++revision, lastAction, selectedIds: Object.freeze({ ...selectedIds }), populations: Object.freeze({ live: summarize(populations.live), demo: summarize(populations.demo) }) });
+    for (const fn of listeners) fn();
+  }
+  function persist() {
+    try {
+      storage?.set("ship-settings-v1", { room: settings.room, night: settings.night, energy: settings.energy });
+    } catch {
+    }
+  }
+  function freeStation(p, room) {
+    return rooms[room].stations.find((s) => ![...p.records.values()].some((r) => r.room === room && r.station?.id === s.id) && !(p.trip?.to === room && p.trip.target.id === s.id));
+  }
+  function stationRecord(r, room, station) {
+    Object.assign(r, { room, station, x: station.x, y: station.y, facing: station.facing || "south", seated: station.seated === true, phase: "station", walking: false, route: [] });
+  }
+  function place(p, r) {
+    const start = [...p.records.values()].filter((v) => v.room !== "offstage").length % ORDER.length;
+    const candidates = [...ORDER.slice(start), ...ORDER.slice(0, start), ...ROOM_IDS];
+    for (const room of candidates) {
+      const station = freeStation(p, room);
+      if (station) {
+        stationRecord(r, room, station);
+        return true;
+      }
+    }
+    return false;
+  }
+  function fillOverflow(p) {
+    for (const r of p.records.values()) if (r.room === "offstage") place(p, r);
+  }
+  function phase(p, value) {
+    const r = p.records.get(p.trip.id);
+    r.phase = value;
+    p.trip.elapsed = 0;
+    r.walking = value === "walking-out" || value === "walking-in" || value === "crossing" || value === "emerging";
+    if (value === "crossing") r.facing = portalFacing(rooms[p.trip.from].portal, true);
+    if (value === "emerging") r.facing = portalFacing(rooms[p.trip.to].portal, false);
+    publish();
+  }
+  function startNext(p) {
+    if (p.trip) return;
+    while (p.queue.length) {
+      const request = p.queue.shift(), r = p.records.get(request.id);
+      if (!r || r.room === request.to) continue;
+      const target = freeStation(p, request.to);
+      if (!target) {
+        lastAction = `${SHIP_ROOM_LABELS[request.to]} is full. Crew stays at its current station.`;
+        publish();
+        continue;
+      }
+      if (r.room === "offstage") {
+        stationRecord(r, request.to, target);
+        lastAction = "Off-stage crew placed at a free station.";
+        publish();
+        continue;
+      }
+      p.trip = { id: r.agent.id, from: r.room, to: request.to, origin: r.station, target, elapsed: 0, manual: request.manual, trail: [[...r.station.stand || [r.x, r.y]]], releaseFrom: [r.x, r.y] };
+      r.seated = Boolean(r.station.stand && r.station.seated);
+      r.route = (r.station.exitPath || []).map((point) => [...point]);
+      const approach = rooms[r.room].portal.approach;
+      if (!r.route.length || r.route.at(-1)[0] !== approach[0] || r.route.at(-1)[1] !== approach[1]) r.route.push([...approach]);
+      phase(p, "preparing");
+      break;
+    }
+  }
+  function finish(p) {
+    if (!p.trip) return;
+    const trip = p.trip, r = p.records.get(trip.id);
+    if (r) {
+      stationRecord(r, trip.to, trip.target);
+      r.manualUntil = p.time + (trip.manual ? 90 : 30);
+    }
+    p.trip = null;
+    fillOverflow(p);
+    publish();
+    startNext(p);
+  }
+  function walk(r, dt, trail = null) {
+    let distanceLeft = dt * 42;
+    while (r.route.length && distanceLeft > 0) {
+      const [x, y] = r.route[0], dx = x - r.x, dy = y - r.y, distance = Math.hypot(dx, dy);
+      if (distance < 0.01) {
+        r.x = x;
+        r.y = y;
+        r.route.shift();
+        continue;
+      }
+      r.facing = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? "east" : "west" : dy > 0 ? "south" : "north";
+      if (distance <= distanceLeft) {
+        r.x = x;
+        r.y = y;
+        r.route.shift();
+        distanceLeft -= distance;
+        trail?.push([x, y]);
+      } else {
+        r.x += dx / distance * distanceLeft;
+        r.y += dy / distance * distanceLeft;
+        distanceLeft = 0;
+      }
+    }
+    return !r.route.length;
+  }
+  function seat(p) {
+    const trip = p.trip, r = p.records.get(trip.id);
+    trip.seatFrom = [r.x, r.y];
+    r.seated = trip.target.seated === true;
+    r.facing = trip.target.facing || "south";
+    phase(p, "seating");
+  }
+  function runTrip(p, dt) {
+    const trip = p.trip;
+    if (!trip) return;
+    const r = p.records.get(trip.id);
+    if (!r) {
+      p.trip = null;
+      startNext(p);
+      return;
+    }
+    if (!trip.manual && !resting(r.agent) && ["preparing", "walking-out", "opening"].includes(r.phase)) {
+      if (r.phase === "preparing") {
+        trip.to = trip.from;
+        trip.target = trip.origin;
+        trip.manual = true;
+        if (trip.origin.stand && Math.hypot(r.x - trip.origin.x, r.y - trip.origin.y) > 0.01) seat(p);
+        else finish(p);
+        return;
+      }
+      r.route = trip.trail.slice().reverse().map((q) => [...q]);
+      trip.target = trip.origin;
+      trip.to = trip.from;
+      phase(p, "walking-in");
+      trip.manual = true;
+    }
+    if (r.phase === "walking-out") {
+      if (walk(r, dt, trip.trail)) phase(p, "opening");
+      return;
+    }
+    if (r.phase === "walking-in") {
+      if (walk(r, dt)) {
+        if (trip.target.stand) seat(p);
+        else finish(p);
+      }
+      return;
+    }
+    trip.elapsed += dt;
+    if (r.phase === "preparing" && trip.origin.stand) {
+      const progress = clamp2(trip.elapsed / DURATIONS.preparing);
+      r.x = trip.releaseFrom[0] + (trip.origin.stand[0] - trip.releaseFrom[0]) * progress;
+      r.y = trip.releaseFrom[1] + (trip.origin.stand[1] - trip.releaseFrom[1]) * progress;
+    }
+    if (r.phase === "seating") {
+      const progress = clamp2(trip.elapsed / DURATIONS.seating);
+      r.x = trip.seatFrom[0] + (trip.target.x - trip.seatFrom[0]) * progress;
+      r.y = trip.seatFrom[1] + (trip.target.y - trip.seatFrom[1]) * progress;
+    }
+    const portal = rooms[trip.from].portal, destination = rooms[trip.to].portal;
+    if (r.phase === "crossing") {
+      const progress = clamp2(trip.elapsed / crossingTime(portal));
+      r.x = portal.approach[0] + (portal.x - portal.approach[0]) * progress;
+      r.y = portal.approach[1] + (portal.y - portal.approach[1]) * progress;
+    }
+    if (r.phase === "emerging") {
+      const progress = clamp2(trip.elapsed / crossingTime(destination));
+      r.x = destination.x + (destination.approach[0] - destination.x) * progress;
+      r.y = destination.y + (destination.approach[1] - destination.y) * progress;
+    }
+    if (trip.elapsed < (r.phase === "crossing" ? crossingTime(portal) : r.phase === "emerging" ? crossingTime(destination) : DURATIONS[r.phase] ?? Infinity)) return;
+    switch (r.phase) {
+      case "preparing":
+        r.seated = false;
+        phase(p, "walking-out");
+        break;
+      case "seating":
+        finish(p);
+        break;
+      case "opening":
+        phase(p, "crossing");
+        break;
+      case "crossing":
+        r.room = "transit";
+        phase(p, "closing");
+        break;
+      case "closing":
+        phase(p, "transit");
+        break;
+      case "transit":
+        phase(p, "arrival-opening");
+        break;
+      case "arrival-opening":
+        r.room = trip.to;
+        r.x = destination.x;
+        r.y = destination.y;
+        phase(p, "emerging");
+        break;
+      case "emerging":
+        phase(p, "arrival-closing");
+        break;
+      case "arrival-closing":
+        r.route = [...(trip.target.exitPath || []).slice().reverse().map((q) => [...q]), [...trip.target.stand || [trip.target.x, trip.target.y]]];
+        phase(p, "walking-in");
+        break;
+    }
+  }
+  function idleVisit(p) {
+    if (settings.energy === "quiet" || p.trip || p.queue.length || p.time < p.nextIdle) return;
+    p.nextIdle = p.time + (settings.energy === "playful" ? 18 : 40);
+    const r = [...p.records.values()].find((r2) => ROOM_IDS.includes(r2.room) && resting(r2.agent) && p.time >= (r2.manualUntil || 0));
+    if (!r) return;
+    const destinations = ROOM_IDS.filter((id) => id !== r.room);
+    const to = destinations.find((id) => freeStation(p, id));
+    if (to) {
+      p.queue.push({ id: r.agent.id, to, manual: false });
+      startNext(p);
+    }
+  }
+  function doorState(p, room) {
+    const trip = p.trip;
+    if (!trip) return 0;
+    const r = p.records.get(trip.id);
+    if (!r) return 0;
+    if (room === trip.from) {
+      if (r.phase === "opening") return clamp2(trip.elapsed / DURATIONS.opening);
+      if (r.phase === "crossing") return 1;
+      if (r.phase === "closing") return 1 - clamp2(trip.elapsed / DURATIONS.closing);
+    }
+    if (room === trip.to) {
+      if (r.phase === "arrival-opening") return clamp2(trip.elapsed / DURATIONS["arrival-opening"]);
+      if (r.phase === "emerging") return 1;
+      if (r.phase === "arrival-closing") return 1 - clamp2(trip.elapsed / DURATIONS["arrival-closing"]);
+    }
+    return 0;
+  }
+  publish();
+  return {
+    getSnapshot: () => snapshot,
+    subscribe(fn) {
+      if (disposed) return () => {
+      };
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+    sync(agents, mode = "live") {
+      if (disposed) return;
+      const p = getPopulation(mode);
+      if (p.source === agents) return;
+      p.source = agents;
+      const valid = new Map((Array.isArray(agents) ? agents : []).filter((a) => a && typeof a.id === "string").map((a) => [a.id, a]));
+      for (const id of p.records.keys()) if (!valid.has(id)) p.records.delete(id);
+      const selectionKey = mode === "demo" ? "demo" : "live";
+      if (selectedIds[selectionKey] && !valid.has(selectedIds[selectionKey])) selectedIds[selectionKey] = null;
+      p.queue = p.queue.filter((q) => valid.has(q.id));
+      if (p.trip && !valid.has(p.trip.id)) p.trip = null;
+      const ordered = [...valid.values()].sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0) || a.id.localeCompare(b.id));
+      for (const agent of ordered) {
+        const r = p.records.get(agent.id);
+        if (r) r.agent = agent;
+        else {
+          const row = { agent, room: "offstage", station: null, x: 0, y: 0, phase: "offstage", facing: "south", seated: false, walking: false, route: [], manualUntil: 0 };
+          place(p, row);
+          p.records.set(agent.id, row);
+        }
+      }
+      runTrip(p, 0);
+      fillOverflow(p);
+      publish();
+      startNext(p);
+    },
+    setRoom(room) {
+      if (disposed || !ROOM_IDS.includes(room)) return false;
+      if (settings.room !== room) {
+        settings = { ...settings, room };
+        persist();
+        publish();
+      }
+      return true;
+    },
+    set(key2, value) {
+      if (disposed || !["night", "energy"].includes(key2)) return false;
+      if (key2 === "energy" && !["quiet", "normal", "playful"].includes(value)) return false;
+      const next = key2 === "energy" ? value : Boolean(value);
+      if (settings[key2] === next) return true;
+      settings = { ...settings, [key2]: next };
+      persist();
+      publish();
+      return true;
+    },
+    trigger(action) {
+      if (disposed) return false;
+      if (action === "reset") {
+        for (const key2 of Object.keys(effects)) effects[key2] = 0;
+        lastAction = "Scene effects cleared. Agent work is unchanged.";
+        publish();
+        return true;
+      }
+      if (!Object.hasOwn(effects, action)) return false;
+      if (action === "pulse") {
+        settings = { ...settings, room: "engineering" };
+        persist();
+      }
+      effects[action] = visualTime + effectLength[action];
+      lastAction = { pulse: "Warp-core resonance \xB7 decorative pulse", diagnostic: "LCARS diagnostic \xB7 visual simulation", lift: "Turbolift ready \xB7 choose a room" }[action];
+      publish();
+      return true;
+    },
+    transfer(id, to, mode = "live") {
+      if (disposed || !ROOM_IDS.includes(to)) return { ok: false, message: "Unknown destination." };
+      const p = getPopulation(mode), r = p.records.get(id);
+      if (!r) return { ok: false, message: "Choose an observed crew member." };
+      if (p.trip?.id === id) return { ok: false, message: "This crew member is already traveling." };
+      if (r.room === to) return { ok: false, message: "Already in this room." };
+      if (!freeStation(p, to)) return { ok: false, message: `${SHIP_ROOM_LABELS[to]} is full.` };
+      p.queue = p.queue.filter((q) => q.id !== id);
+      p.queue.push({ id, to, manual: true });
+      lastAction = `Visual assignment to ${SHIP_ROOM_LABELS[to]}. Actual work is unchanged.`;
+      publish();
+      startNext(p);
+      return { ok: true, message: lastAction };
+    },
+    select(id, mode = "live") {
+      const key2 = mode === "demo" ? "demo" : "live";
+      if (id !== null && !populations[key2].records.has(id)) return false;
+      if (selectedIds[key2] !== id) {
+        selectedIds[key2] = id;
+        publish();
+      }
+      return true;
+    },
+    locate(id, mode = "live") {
+      const p = getPopulation(mode), r = p.records.get(id);
+      if (!r) return false;
+      const room = r.room === "transit" ? p.trip?.to : r.room;
+      if (!ROOM_IDS.includes(room)) {
+        lastAction = "This crew member is off-stage. Choose a free room to place them.";
+        publish();
+        return false;
+      }
+      return this.setRoom(room);
+    },
+    releaseClock(consumer = null) {
+      for (const p of Object.values(populations)) p.drivers.delete(consumer);
+      rebaseInactiveClocks();
+    },
+    tick(stamp, mode = "live", { paused = false, reducedMotion = false, hidden = false, consumer = null } = {}) {
+      if (disposed || !Number.isFinite(stamp)) return;
+      const p = getPopulation(mode);
+      p.drivers.set(consumer, !paused && !hidden && !reducedMotion);
+      rebaseInactiveClocks();
+      if (paused || hidden) return;
+      if (reducedMotion) {
+        let limit = p.records.size + 1;
+        while (p.trip && limit-- > 0) finish(p);
+        return;
+      }
+      const dt = p.lastStamp === null ? 0 : Math.max(0, Math.min(0.08, (stamp - p.lastStamp) / 1e3));
+      p.lastStamp = Math.max(stamp, p.lastStamp ?? stamp);
+      if (visualStamp !== null) visualTime += Math.max(0, Math.min(0.08, (stamp - visualStamp) / 1e3));
+      visualStamp = Math.max(stamp, visualStamp ?? stamp);
+      if (!dt) return;
+      p.time += dt;
+      runTrip(p, dt);
+      idleVisit(p);
+    },
+    getFrame(mode = "live") {
+      const p = getPopulation(mode), room = settings.room;
+      const items = [...p.records.values()].filter((r) => r.room === room).map((r) => ({ agent: r.agent, index: rooms[room].stations.indexOf(r.station), x: Math.round(r.x), y: Math.round(r.y), facing: r.facing, seated: r.seated, walking: r.walking, atStation: r.phase === "station", pose: r.walking ? "walk" : resting(r.agent) ? "padd" : r.agent.status === "active" ? "work" : "inspect", phase: r.phase, team: false }));
+      return { room, time: visualTime, items, effects: { night: settings.night, pulse: clamp2((effects.pulse - visualTime) / effectLength.pulse), diagnostic: clamp2((effects.diagnostic - visualTime) / effectLength.diagnostic), door: rooms[room].portal.offscreen ? 0 : Math.max(doorState(p, room), clamp2((effects.lift - visualTime) / effectLength.lift)) }, counts: summarize(p).counts, total: p.records.size };
+    },
+    dispose() {
+      disposed = true;
+      listeners.clear();
+      for (const p of Object.values(populations)) {
+        p.records.clear();
+        p.drivers.clear();
+        p.queue = [];
+        p.trip = null;
+      }
+    }
+  };
+}
+
+// src/ship-controls.js
 var h = React.createElement;
-var STATE = { active: ["\u25C6", "Working"], waiting: ["!", "Needs input"], error: ["\xD7", "Needs attention"], done: ["\u2713", "Turn complete"], idle: ["\u25CB", "Idle"], queued: ["\u25C7", "Queued"], unknown: ["?", "Unverified"] };
-var COLORS = ["#bba27c", "#c58f72", "#b3a4c7"];
+var ROOMS = Object.entries(SHIP_ROOM_LABELS);
+var ROOM_LABELS = SHIP_ROOM_LABELS;
+var STATES = { active: "Working", waiting: "Needs input", error: "Needs attention", done: "Turn complete", idle: "Idle", queued: "Queued", unknown: "Unverified" };
 function Action({ children, ...props }) {
   return h(Button, { type: "button", ...props }, children);
 }
+function locationLabel(location) {
+  if (!location) return "Location unavailable";
+  if (location.room === "transit") return `In transit${ROOM_LABELS[location.destination] ? ` \u2192 ${ROOM_LABELS[location.destination]}` : ""}`;
+  if (location.room === "offstage") return "Off-stage";
+  return ROOM_LABELS[location.room] || "Location unavailable";
+}
+function statusLabel(agent) {
+  const current = STATES[agent.status] || STATES.unknown;
+  const attention = attentionStatus(agent);
+  return `${current}${agent.verified === false && agent.status !== "unknown" ? " \xB7 Unverified" : ""}${attention && attention !== agent.status ? ` \xB7 Earlier ${attention === "error" ? "error" : "input request"}` : ""}`;
+}
+function actionLabel(action) {
+  return typeof action === "string" ? action : typeof action?.message === "string" ? action.message : "";
+}
+function ShipControls({ ship, mode = "live", agents = [], selectedId = null, onSelect, compact = false }) {
+  const snapshot = useSyncExternalStore(ship.subscribe, ship.getSnapshot, ship.getSnapshot);
+  const [localId, setLocalId] = useState(null), [destination, setDestination] = useState("engineering"), [notice, setNotice] = useState(null);
+  const hintId = useId();
+  const population = snapshot.populations?.[mode];
+  const locations = new Map((population?.locations || []).map((location2) => [location2.id, location2]));
+  const selected = agents.find((agent) => agent.id === (onSelect ? selectedId : localId ?? selectedId));
+  const location = selected ? locations.get(selected.id) : null;
+  const attention = { bridge: 0, engineering: 0 };
+  let elsewhere = 0;
+  for (const agent of agents) {
+    if (!attentionStatus(agent)) continue;
+    const room = locations.get(agent.id)?.room;
+    if (Object.hasOwn(attention, room)) attention[room]++;
+    if (room !== snapshot.room) elsewhere++;
+  }
+  const names = /* @__PURE__ */ new Map();
+  for (const agent of agents) {
+    const name = agent.name || agent.profile || "Unnamed agent";
+    names.set(name, (names.get(name) || 0) + 1);
+  }
+  const crewName = (agent) => {
+    const name = agent.name || agent.profile || "Unnamed agent";
+    return names.get(name) > 1 ? `${name} \xB7 ${agent.id}` : name;
+  };
+  const message = notice && notice.action === snapshot.lastAction && notice.mode === mode && notice.id === (selected?.id ?? null) ? notice.text : actionLabel(snapshot.lastAction);
+  function report(text3) {
+    setNotice({ text: text3, action: ship.getSnapshot().lastAction, mode, id: selected?.id ?? null });
+  }
+  function act(fn) {
+    setNotice(null);
+    fn();
+  }
+  function select(id) {
+    setNotice(null);
+    setLocalId(id || null);
+    onSelect?.(id || null);
+  }
+  function locate() {
+    if (!selected) return;
+    if (ship.locate(selected.id, mode)) report(`${crewName(selected)} \xB7 ${locationLabel(locations.get(selected.id))}.`);
+    else report(location?.room === "transit" ? `${crewName(selected)} is in transit. Locate again on arrival.` : location?.room === "offstage" ? `${crewName(selected)} is off-stage; choose a room to move them locally.` : "Crew location is not available yet.");
+  }
+  function transfer() {
+    if (!selected) return;
+    const result = ship.transfer(selected.id, destination, mode);
+    report(result.message || (result.ok ? "Local crew move requested." : "Could not move crew locally."));
+  }
+  const moving = Boolean(selected && (location?.room === "transit" || population?.activeTripId === selected.id));
+  return h(
+    "section",
+    { className: `pw-ship${compact ? " pw-ship--compact" : ""}`, "aria-label": "Ship rooms and local controls" },
+    h("nav", { className: "pw-ship-rooms", "aria-label": "Ship rooms" }, ROOMS.map(([room, label2]) => h(
+      Action,
+      { key: room, className: "pw-ship-room", "aria-pressed": snapshot.room === room, onClick: () => act(() => ship.setRoom(room)) },
+      h("span", { className: "pw-ship-room-name" }, label2),
+      h("span", { className: "pw-ship-count" }, population?.counts?.[room] ?? 0, h("span", { className: "pw-ship-sr" }, " crew")),
+      attention[room] > 0 && h("span", { className: "pw-ship-attention" }, "! ", attention[room], h("span", { className: "pw-ship-sr" }, " need attention"))
+    ))),
+    h(
+      "div",
+      { className: "pw-ship-population" },
+      h("span", null, `${mode === "demo" ? "Demo" : "Live"} \xB7 ${population?.total ?? 0} crew`),
+      h("span", null, `${population?.counts?.transit ?? 0} in transit \xB7 ${population?.counts?.offstage ?? 0} off-stage`),
+      elsewhere > 0 && h("strong", { className: "pw-ship-attention" }, `${elsewhere} need attention elsewhere`)
+    ),
+    h(
+      "details",
+      { className: "pw-ship-disclosure" },
+      h("summary", { className: "pw-ship-summary" }, h("span", null, "Ship controls"), h("span", { className: "pw-ship-summary-note" }, "Local scene only")),
+      h(
+        "div",
+        { className: "pw-ship-body" },
+        h("p", { className: "pw-ship-hint", id: hintId }, "Scene effects and visual crew placement only. No jobs are routed or commands run."),
+        h(
+          "div",
+          { className: "pw-ship-row", "aria-label": "Scene lighting" },
+          h(Action, { "aria-pressed": Boolean(snapshot.night), "aria-label": "Night shift", onClick: () => act(() => ship.set("night", !snapshot.night)) }, "Night shift", h("span", { className: "pw-ship-switch", "aria-hidden": true }, snapshot.night ? "On" : "Off"))
+        ),
+        h("fieldset", { className: "pw-ship-energy" }, h("legend", null, "Scene energy"), h("div", { className: "pw-ship-row" }, ["quiet", "normal", "playful"].map((energy) => h(Action, { key: energy, "aria-pressed": snapshot.energy === energy, onClick: () => act(() => ship.set("energy", energy)) }, energy[0].toUpperCase() + energy.slice(1))))),
+        h("div", { className: "pw-ship-row", "aria-label": "Local scene effects" }, [["pulse", "Pulse warp core"], ["diagnostic", "Diagnostic sweep"], ["reset", "Clear effects"]].map(([action, label2]) => h(Action, { key: action, onClick: () => act(() => ship.trigger(action)) }, label2))),
+        h(
+          "div",
+          { className: "pw-ship-crew" },
+          h("label", { className: "pw-ship-field" }, h("span", { id: `${hintId}-crew` }, "Crew member"), h(
+            "select",
+            { className: "pw-ship-select", "aria-labelledby": `${hintId}-crew`, value: selected?.id || "", onChange: (event) => select(event.target.value) },
+            h("option", { value: "" }, agents.length ? "Select crew\u2026" : "No crew in this source"),
+            agents.map((agent) => h("option", { key: agent.id, value: agent.id }, `${crewName(agent)} \xB7 ${statusLabel(agent)} \xB7 ${locationLabel(locations.get(agent.id))}`))
+          )),
+          selected && h("p", { className: "pw-ship-selected" }, `${statusLabel(selected)} \xB7 ${locationLabel(location)}`),
+          h(
+            "div",
+            { className: "pw-ship-row" },
+            h(Action, { disabled: !selected, onClick: locate }, "Locate crew"),
+            h("label", { className: "pw-ship-field pw-ship-destination" }, h("span", { id: `${hintId}-destination` }, "Move to room"), h("select", { className: "pw-ship-select", "aria-labelledby": `${hintId}-destination`, value: destination, onChange: (event) => setDestination(event.target.value) }, ROOMS.map(([id, label2]) => h("option", { key: id, value: id }, label2)))),
+            h(Action, { disabled: !selected || moving || location?.room === destination, onClick: transfer, "aria-describedby": hintId }, "Move crew locally")
+          ),
+          moving && h("p", { className: "pw-ship-hint" }, "Crew is travelling; choose another destination after arrival.")
+        )
+      )
+    ),
+    h("p", { className: "pw-ship-notice", role: "status", "aria-live": "polite", "aria-atomic": true }, message)
+  );
+}
+
+// src/ship-styles.js
+var shipStyles = `
+.pw .pw-ship{position:relative;min-width:0;max-width:100%;margin:0;padding:8px;border-bottom:1px solid var(--pw-line);color:var(--pw-ink);font-size:11px}
+
+.pw .pw-ship-rooms{display:flex;flex-wrap:wrap;gap:5px;position:relative;min-width:0}
+.pw .pw-ship .pw-ship-room{display:flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0;text-align:left}
+.pw .pw-ship-room-name{min-width:0;overflow-wrap:anywhere}
+.pw .pw-ship button{max-width:100%;white-space:normal}
+.pw .pw-ship-count{flex-shrink:0;font-variant-numeric:tabular-nums;text-align:center;border-left:1px solid var(--pw-line);padding-left:6px}
+.pw .pw-ship-attention{font-size:11px;font-weight:600;color:var(--pw-ink);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.pw .pw-ship-room .pw-ship-attention{white-space:nowrap;flex-shrink:0}
+.pw .pw-ship-population{display:flex;flex-wrap:wrap;gap:2px 13px;padding:8px 0;color:var(--pw-muted);font-size:11px;font-variant-numeric:tabular-nums}
+.pw .pw-ship-disclosure{min-width:0;border-top:1px solid var(--pw-line)}
+.pw .pw-ship-summary{padding:8px 0;cursor:pointer;color:var(--pw-ink);font-weight:600;overflow-wrap:anywhere}
+.pw .pw-ship-summary::marker{color:var(--pw-ink)}
+.pw .pw-ship-summary-note{display:inline-block;margin-left:12px;font-weight:400;font-size:11px;color:var(--pw-muted)}
+.pw .pw-ship-body{display:grid;gap:8px;min-width:0;padding:4px 0 8px}
+.pw .pw-ship-hint{margin:0;font-size:11px;line-height:1.5;color:var(--pw-muted);overflow-wrap:anywhere}
+.pw .pw-ship-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px;min-width:0}
+.pw .pw-ship-switch{display:inline-block;margin-left:8px;color:var(--pw-muted);font-size:10px}
+.pw .pw-ship-energy{border:0;margin:0;padding:0;min-width:0}
+.pw .pw-ship-energy legend{padding:0;margin:0 0 6px;color:var(--pw-muted);font-size:11px}
+.pw .pw-ship-crew{display:grid;gap:8px;min-width:0;padding-top:12px;border-top:1px solid var(--pw-line)}
+.pw .pw-ship-field{display:grid;gap:4px;min-width:0;max-width:100%;color:var(--pw-muted);font-size:11px}
+.pw .pw-ship .pw-ship-select{display:block;width:100%;min-width:0;max-width:100%;border:1px solid var(--pw-line);border-radius:6px;padding:6px;color:var(--pw-ink);background:var(--pw-panel);font:inherit;text-overflow:ellipsis}
+.pw .pw-ship-destination{flex:1 1 160px}
+.pw .pw-ship-selected{margin:0;overflow-wrap:anywhere;color:var(--pw-ink);font-size:11px}
+.pw .pw-ship-notice{margin:0;max-width:100%;font-size:11px;overflow-wrap:anywhere;color:var(--pw-ink)}
+.pw .pw-ship-notice:not(:empty){padding:8px 0 2px;border-top:1px solid var(--pw-line)}
+.pw .pw-ship-select:focus-visible,.pw .pw-ship-summary:focus-visible{outline:2px solid var(--pw-accent);outline-offset:3px}
+.pw .pw-ship-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.pw .pw-ship--compact{margin:5px 0 0;padding:8px;border:1px solid var(--pw-line);border-radius:9px;background:var(--pw-panel)}
+.pw .pw-ship--compact .pw-ship-population>span{display:none}
+.pw .pw-ship--compact .pw-ship-population:not(:has(strong)){display:none}
+.pw .pw-agents-controls,.pw .pw-display-controls{max-height:calc(100% - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.pw .pw-ship--compact .pw-ship-body{max-height:min(55vh,460px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:4px 5px 8px 3px}
+@container(max-width:480px){.pw .pw-ship-summary-note{margin-left:8px}}
+@media(prefers-reduced-motion:reduce){.pw .pw-ship,.pw .pw-ship *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(forced-colors:active){.pw .pw-ship button[aria-pressed=true]{outline:2px solid Highlight;outline-offset:-3px}.pw .pw-ship-count{border-color:CanvasText}}
+`;
+
+// src/app.js
+var h2 = React2.createElement;
+var STATE = { active: ["\u25C6", "Working"], waiting: ["!", "Needs input"], error: ["\xD7", "Needs attention"], done: ["\u2713", "Turn complete"], idle: ["\u25CB", "Idle"], queued: ["\u25C7", "Queued"], unknown: ["?", "Unverified"] };
+var COLORS2 = ["#bba27c", "#c58f72", "#b3a4c7"];
+function Action2({ children, ...props }) {
+  return h2(Button2, { type: "button", ...props }, children);
+}
 function Mark({ status }) {
-  return h("span", { className: "pw-mark", "aria-hidden": true }, (STATE[status] || STATE.unknown)[0]);
+  return h2("span", { className: "pw-mark", "aria-hidden": true }, (STATE[status] || STATE.unknown)[0]);
+}
+function shipSummary(snapshot, mode) {
+  const p = snapshot.populations[mode], c = p.counts;
+  return `${c[snapshot.room]} in ${SHIP_ROOM_LABELS[snapshot.room]} \xB7 ${p.total - c[snapshot.room] - c.offstage - c.transit} elsewhere \xB7 ${c.transit} in transit \xB7 ${c.offstage} off-stage`;
 }
 function useReducedMotion() {
-  const [reduced, set] = useState(() => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
+  const [reduced, set] = useState2(() => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
   useEffect(() => {
     const m = matchMedia("(prefers-reduced-motion: reduce)");
     const change = () => set(m.matches);
@@ -2027,12 +3561,12 @@ function useReducedMotion() {
   }, []);
   return reduced;
 }
-function Scene({ theme, realm = null, agents, selectedId, onSelect, reducedMotion, paused, onMetrics, displayMode }) {
+function Scene({ theme, realm = null, agents, selectedId, onSelect, reducedMotion, paused, onMetrics, displayMode, ship = null, shipMode = "live" }) {
   const canvas = useRef(null), container = useRef(null), renderer = useRef(null), latest = useRef(null), visible = useRef(true);
-  latest.current = { theme, realm, agents, selectedId, reducedMotion, paused };
+  latest.current = { theme, realm, agents, selectedId, reducedMotion, paused, shipMode };
   useEffect(() => {
     visible.current = true;
-    const world = createWorld(canvas.current, { onSelect, onMetrics });
+    const world = createWorld(canvas.current, { onSelect, onMetrics, ship });
     renderer.current = world;
     const update = () => world.update({ ...latest.current, paused: latest.current.paused || !visible.current || document.hidden });
     const resize = () => {
@@ -2056,11 +3590,12 @@ function Scene({ theme, realm = null, agents, selectedId, onSelect, reducedMotio
       world.destroy();
       renderer.current = null;
     };
-  }, [onSelect, onMetrics]);
+  }, [onSelect, onMetrics, ship]);
   useEffect(() => {
     renderer.current?.update({ ...latest.current, paused: paused || !visible.current || document.hidden });
-  }, [theme, realm, agents, selectedId, reducedMotion, paused]);
-  return h("div", { className: "pw-scene-inner", ref: container }, h("canvas", { ref: canvas, role: "img", "aria-label": `${realm?.title || THEMES.find((t) => t.id === theme)?.title || theme} world. ${agents.length} agents on stage. ${displayMode ? "Return to Worlds for the accessible agent roster." : "Select agents using the accessible list below."}` }));
+  }, [theme, realm, agents, selectedId, reducedMotion, paused, shipMode]);
+  const shipView = theme === "bridge" && ship ? ship.getSnapshot() : null;
+  return h2("div", { className: "pw-scene-inner", ref: container }, h2("canvas", { ref: canvas, role: "img", "aria-label": `${shipView ? SHIP_ROOM_LABELS[shipView.room] : realm?.title || THEMES.find((t) => t.id === theme)?.title || theme} world. ${shipView ? shipView.populations[shipMode].counts[shipView.room] : agents.length} agents on stage. ${shipView ? "Use Ship controls for keyboard-accessible rooms, crew and activities." : displayMode ? "Return to Worlds for the accessible agent roster." : "Select agents using the accessible list below."}` }));
 }
 function createWorldPreferences(storage) {
   const read = (key2, fallback) => {
@@ -2085,8 +3620,8 @@ function createWorldPreferences(storage) {
   }, dispose: () => listeners.clear() };
 }
 function useWorldSettings(preferences, realmLibrary) {
-  const settings = useSyncExternalStore(preferences.subscribe, preferences.getSnapshot, preferences.getSnapshot);
-  const imported = useSyncExternalStore(realmLibrary.subscribe, realmLibrary.getSnapshot, realmLibrary.getSnapshot);
+  const settings = useSyncExternalStore2(preferences.subscribe, preferences.getSnapshot, preferences.getSnapshot);
+  const imported = useSyncExternalStore2(realmLibrary.subscribe, realmLibrary.getSnapshot, realmLibrary.getSnapshot);
   const themes = useMemo(() => [...THEMES, ...imported], [imported]);
   useEffect(() => {
     let active = true;
@@ -2101,7 +3636,7 @@ function useWorldSettings(preferences, realmLibrary) {
 }
 function RealmManager({ realmLibrary, realm, setTheme, openExternal }) {
   const input = useRef(null), mounted = useRef(true);
-  const [busy, setBusy] = useState(false), [message, setMessage] = useState(""), [error, setError] = useState(false);
+  const [busy, setBusy] = useState2(false), [message, setMessage] = useState2(""), [error, setError] = useState2(false);
   useEffect(() => {
     mounted.current = true;
     realmLibrary.ready.then(() => {
@@ -2164,15 +3699,17 @@ function RealmManager({ realmLibrary, realm, setTheme, openExternal }) {
       setMessage(`Could not open realm gallery: ${e.message || e}`);
     }
   }
-  return h("section", { className: "pw-realm-manager", "aria-label": "Realm library" }, h("div", { className: "pw-tools" }, h(Action, { className: "pw-primary", onClick: browse }, "Browse realms"), h(Action, { onClick: () => input.current?.click(), disabled: busy }, busy ? "Importing\u2026" : "Import realm"), realm && h(Action, { onClick: remove, disabled: busy, title: `Remove ${realm.title} from your imported library` }, "Remove selected realm"), h("input", { ref: input, type: "file", accept: ".pwrealm.json,.json,application/json", hidden: true, "aria-label": "Import realm file", onChange: importFile })), h("span", { className: "pw-caption" }, "Import a .pwrealm.json package. Duplicate IDs are rejected; remove a realm explicitly before replacing it."), message && h("p", { role: error ? "alert" : "status", className: "pw-notice" }, message));
+  return h2("section", { className: "pw-realm-manager", "aria-label": "Realm library" }, h2("div", { className: "pw-tools" }, h2(Action2, { className: "pw-primary", onClick: browse }, "Browse realms"), h2(Action2, { onClick: () => input.current?.click(), disabled: busy }, busy ? "Importing\u2026" : "Import realm"), realm && h2(Action2, { onClick: remove, disabled: busy, title: `Remove ${realm.title} from your imported library` }, "Remove selected realm"), h2("input", { ref: input, type: "file", accept: ".pwrealm.json,.json,application/json", hidden: true, "aria-label": "Import realm file", onChange: importFile })), h2("span", { className: "pw-caption" }, "Import a .pwrealm.json package. Duplicate IDs are rejected; remove a realm explicitly before replacing it."), message && h2("p", { role: error ? "alert" : "status", className: "pw-notice" }, message));
 }
-function PixelWorlds({ runtime, storage, host: host2, realmLibrary, preferences, openExternal }) {
-  const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
+function PixelWorlds({ runtime, storage, host: host2, realmLibrary, preferences, openExternal, ship }) {
+  const snapshot = useSyncExternalStore2(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
   const { theme, setTheme, paused, setPaused, reducedMotion: motion, setMotion, themes, realm } = useWorldSettings(preferences, realmLibrary);
-  const [mode, setMode] = useState("live");
-  const [demo, setDemo] = useState(demonstration);
-  const [selectedId, setSelected] = useState(null);
-  const [displayMode, setDisplayMode] = useState(() => {
+  const [mode, setMode] = useState2("live");
+  const [demo, setDemo] = useState2(demonstration);
+  const [localSelected, setSelected] = useState2(null);
+  const shipState = useSyncExternalStore2(ship.subscribe, ship.getSnapshot, ship.getSnapshot);
+  const selectedId = theme === "bridge" ? shipState.selectedIds[mode] : localSelected;
+  const [displayMode, setDisplayMode] = useState2(() => {
     try {
       return storage.get("displayMode") === true;
     } catch {
@@ -2180,12 +3717,15 @@ function PixelWorlds({ runtime, storage, host: host2, realmLibrary, preferences,
     }
   });
   const root = useRef(null), wasDisplay = useRef(false);
-  const [page, setPage] = useState(0), [query, setQuery] = useState("");
-  const [routes, setRoutes] = useState([]), [notice, setNotice] = useState(""), [opening, setOpening] = useState(false);
+  const [page, setPage] = useState2(0), [query, setQuery] = useState2("");
+  const [routes, setRoutes] = useState2([]), [notice, setNotice] = useState2(""), [opening, setOpening] = useState2(false);
   const metrics = useRef(null);
   const systemReduced = useReducedMotion();
   const data = mode === "demo" ? demo : snapshot;
   const agents = data.agents || [];
+  useEffect(() => {
+    ship.sync(agents, mode);
+  }, [ship, agents, mode]);
   const stats = counts(agents);
   const list = useMemo(() => selectAgents(agents, { page, query }), [agents, page, query]);
   const selected = agents.find((a) => a.id === selectedId) || null;
@@ -2199,7 +3739,12 @@ function PixelWorlds({ runtime, storage, host: host2, realmLibrary, preferences,
   }, [agents]);
   const world = themes.find((t) => t.id === theme) || THEMES[0];
   const target = selected ? sessionTarget(selected, routes) : null;
-  const onSelect = useMemo(() => (id) => setSelected(typeof id === "object" ? id.id : id), []);
+  const onSelect = useMemo(() => (value) => {
+    const id = value && typeof value === "object" ? value.id : value;
+    setSelected(id);
+    ship.select(id, mode);
+    if (theme === "bridge" && id) ship.locate(id, mode);
+  }, [ship, mode, theme]);
   const onMetrics = useMemo(() => (m) => {
     metrics.current = m;
   }, []);
@@ -2236,6 +3781,7 @@ function PixelWorlds({ runtime, storage, host: host2, realmLibrary, preferences,
   function changeMode(next) {
     setMode(next);
     setSelected(null);
+    ship.select(null, next);
     setPage(0);
     setQuery("");
     setNotice("");
@@ -2259,127 +3805,143 @@ function PixelWorlds({ runtime, storage, host: host2, realmLibrary, preferences,
   const observing = (snapshot.connections || []).some((c) => c.status === "open" || c.status === "observed");
   const selectedSource = selected ? (snapshot.connections || []).find((c) => c.id === selected.connectionId && c.profile === selected.profile) : null;
   const feed = (data.events || []).slice(0, 5);
-  return h(
+  const stageSummary = theme === "bridge" ? shipSummary(shipState, mode) : `${list.visible.length} on stage \xB7 ${agents.length - list.visible.length} off-stage`;
+  return h2(
     "main",
     { ref: root, className: "pw", "data-mode": mode, "data-theme": theme, "data-display": String(displayMode) },
-    h("style", null, styles),
-    h(
+    h2("style", null, styles + shipStyles),
+    h2(
       "div",
       { className: "pw-shell" },
-      h(
+      h2(
         "header",
         { className: "pw-header" },
-        h("div", null, h("div", { className: "pw-eyebrow" }, "Your agents, a world of their own"), h("h1", null, "Pixel Worlds"), h("p", { className: "pw-caption" }, "One live crew. Three places to make things happen.")),
-        h("div", { className: "pw-header-controls" }, h("div", { className: "pw-mode", "aria-label": "Data source" }, h(Action, { "aria-pressed": mode === "live", onClick: () => changeMode("live") }, "Live agents"), h(Action, { "aria-pressed": mode === "demo", onClick: () => changeMode("demo") }, "Explore themes")))
+        h2("div", null, h2("div", { className: "pw-eyebrow" }, "Your agents, a world of their own"), h2("h1", null, "Pixel Worlds"), h2("p", { className: "pw-caption" }, "One live crew. Three places to make things happen.")),
+        h2("div", { className: "pw-header-controls" }, h2("div", { className: "pw-mode", "aria-label": "Data source" }, h2(Action2, { "aria-pressed": mode === "live", onClick: () => changeMode("live") }, "Live agents"), h2(Action2, { "aria-pressed": mode === "demo", onClick: () => changeMode("demo") }, "Explore themes")))
       ),
-      h(RealmManager, { realmLibrary, realm, setTheme, openExternal }),
-      h(
+      h2(RealmManager, { realmLibrary, realm, setTheme, openExternal }),
+      h2(
         "div",
         { className: "pw-topline" },
-        h("div", { className: "pw-world-tabs", "aria-label": "World theme" }, themes.map((t, i) => h(Action, { key: t.id, "aria-pressed": theme === t.id, onClick: () => setTheme(t.id) }, h("span", { className: "pw-theme-dot", style: { background: COLORS[i % COLORS.length] } }), t.title))),
-        h("div", { className: "pw-counters", "aria-label": "Agent counts" }, h("span", null, h("strong", null, stats.total), "crew"), h("span", null, h("strong", null, stats.active), "working"), h("span", null, h("strong", null, stats.attention), "attention"))
+        h2("div", { className: "pw-world-tabs", "aria-label": "World theme" }, themes.map((t, i) => h2(Action2, { key: t.id, "aria-pressed": theme === t.id, onClick: () => setTheme(t.id) }, h2("span", { className: "pw-theme-dot", style: { background: COLORS2[i % COLORS2.length] } }), t.title))),
+        h2("div", { className: "pw-counters", "aria-label": "Agent counts" }, h2("span", null, h2("strong", null, stats.total), "crew"), h2("span", null, h2("strong", null, stats.active), "working"), h2("span", null, h2("strong", null, stats.attention), "attention"))
       ),
-      h(
+      h2(
         "div",
         { className: "pw-layout" },
-        h(
+        h2(
           "section",
           { "aria-label": "World and crew" },
-          h(
+          h2(
             "div",
             { className: "pw-world-card" },
-            mode === "demo" ? h("div", { className: "pw-banner", role: "status" }, h("b", null, "Theme demonstration. "), "Illustrative agents and teamwork. Your live sessions are unchanged.") : h("div", { className: "pw-banner", role: "status" }, h("b", null, observing ? "Observed event streams \xB7 " : "Observation \xB7 "), `${agents.length} observed ${agents.length === 1 ? "agent" : "agents"}`, stats.unknown ? ` \xB7 ${stats.unknown} awaiting fresh evidence` : "", " \xB7 No commands run by scenery."),
-            h("div", { className: "pw-scene" }, h(Scene, { theme, realm, agents: list.visible, selectedId, onSelect, reducedMotion: motion || systemReduced, paused, onMetrics, displayMode }), !agents.length && h("div", { className: "pw-empty" }, h("b", null, "The room is ready."), displayMode ? "No observed agents. Exit display to explore illustrative themes." : "Agents appear as Hermes reports their sessions. Explore themes to meet an illustrative crew.")),
-            h("div", { className: "pw-world-caption" }, h("span", null, h("strong", null, world.title), " / ", world.subtitle || "A different world. The same real work."), h("span", null, "Click a character to inspect"))
+            mode === "demo" ? h2("div", { className: "pw-banner", role: "status" }, h2("b", null, "Theme demonstration. "), "Illustrative agents and teamwork. Your live sessions are unchanged.") : h2("div", { className: "pw-banner", role: "status" }, h2("b", null, observing ? "Observed event streams \xB7 " : "Observation \xB7 "), `${agents.length} observed ${agents.length === 1 ? "agent" : "agents"}`, stats.unknown ? ` \xB7 ${stats.unknown} awaiting fresh evidence` : "", " \xB7 No commands run by scenery."),
+            theme === "bridge" && !displayMode && h2(ShipControls, { ship, mode, agents, selectedId, onSelect }),
+            h2("div", { className: "pw-scene" }, h2(Scene, { theme, realm, agents: theme === "bridge" ? agents : list.visible, selectedId, onSelect, reducedMotion: motion || systemReduced, paused, onMetrics, displayMode, ship, shipMode: mode }), !agents.length && h2("div", { className: "pw-empty" }, h2("b", null, "The room is ready."), displayMode ? "No observed agents. Exit display to explore illustrative themes." : "Agents appear as Hermes reports their sessions. Explore themes to meet an illustrative crew.")),
+            h2("div", { className: "pw-world-caption" }, h2("span", null, h2("strong", null, world.title), " / ", world.subtitle || "A different world. The same real work."), h2("span", null, "Click a character to inspect"))
           ),
-          h(
+          h2(
             "div",
             { className: "pw-toolbar" },
-            h("div", { className: "pw-tools" }, h(Action, { "aria-pressed": paused, onClick: () => setPaused(!paused) }, paused ? "Resume animation" : "Pause animation"), h(Action, { "aria-pressed": motion || systemReduced, onClick: () => setMotion(!motion), disabled: systemReduced, title: systemReduced ? "Reduced motion follows your system preference" : "" }, "Reduced motion"), h(Action, { className: "pw-display-enter", onClick: () => setDisplayMode(true), title: "Scene-only view. Press Escape to return." }, "Display mode"), h(Action, { onClick: () => host2.navigate("/pw-agents") }, "PW Agents")),
-            h("span", null, list.total > 12 ? `Showing ${list.page * 12 + 1}\u2013${Math.min((list.page + 1) * 12, list.total)} of ${list.total}` : `${list.total} ${list.total === 1 ? "agent" : "agents"} in view`)
+            h2("div", { className: "pw-tools" }, h2(Action2, { "aria-pressed": paused, onClick: () => setPaused(!paused) }, paused ? "Resume animation" : "Pause animation"), h2(Action2, { "aria-pressed": motion || systemReduced, onClick: () => setMotion(!motion), disabled: systemReduced, title: systemReduced ? "Reduced motion follows your system preference" : "" }, "Reduced motion"), h2(Action2, { className: "pw-display-enter", onClick: () => setDisplayMode(true), title: "Scene-only view. Press Escape to return." }, "Display mode"), h2(Action2, { onClick: () => host2.navigate("/pw-agents") }, "PW Agents")),
+            h2("span", null, theme === "bridge" ? `${list.visible.length} of ${list.total} in crew list` : list.total > 12 ? `Showing ${list.page * 12 + 1}\u2013${Math.min((list.page + 1) * 12, list.total)} of ${list.total}` : `${list.total} ${list.total === 1 ? "agent" : "agents"} in view`)
           ),
-          h(
+          h2(
             "section",
             { className: "pw-roster", "aria-label": "Accessible agent roster" },
-            h("div", { className: "pw-section-heading" }, h("h2", null, "The crew"), h("input", { className: "pw-search", type: "search", value: query, placeholder: "Find an agent\u2026", "aria-label": "Find an agent", onChange: (e) => {
+            h2("div", { className: "pw-section-heading" }, h2("h2", null, "The crew"), h2("input", { className: "pw-search", type: "search", value: query, placeholder: "Find an agent\u2026", "aria-label": "Find an agent", onChange: (e) => {
               setQuery(e.target.value);
               setPage(0);
             } })),
-            h("div", { className: "pw-agent-grid" }, list.visible.map((a) => h(Action, { key: a.id, className: "pw-agent", "aria-pressed": selectedId === a.id, onClick: () => onSelect(a.id) }, h("span", { className: "pw-avatar" }, h(Mark, { status: attentionStatus(a) || a.status })), h("span", { className: "pw-agent-copy" }, h("span", { className: "pw-agent-name", title: a.storedSessionId || a.subagentId || a.sessionId || a.id }, a.name || a.profile || "Unnamed agent", (nameCounts.get(a.name || a.profile) || 0) > 1 ? ` \xB7 ${String(a.subagentId || a.storedSessionId || a.sessionId || a.id).slice(-8)}` : ""), h("span", { className: "pw-agent-meta" }, attentionStatus(a) && a.status !== attentionStatus(a) ? "Earlier attention \xB7 " : "", (STATE[a.status] || STATE.unknown)[1], " \xB7 ", a.tool || a.activity || "observed"))))),
-            !list.total && h("p", { className: "pw-caption" }, query ? "No agents match this search." : "No observed sessions yet."),
-            list.pages > 1 && h("div", { className: "pw-toolbar" }, h(Action, { onClick: () => setPage(list.page - 1), disabled: list.page === 0 }, "Previous"), h("span", null, `Page ${list.page + 1} of ${list.pages}`), h(Action, { onClick: () => setPage(list.page + 1), disabled: list.page === list.pages - 1 }, "Next"))
+            h2("div", { className: "pw-agent-grid" }, list.visible.map((a) => h2(Action2, { key: a.id, className: "pw-agent", "aria-pressed": selectedId === a.id, onClick: () => onSelect(a.id) }, h2("span", { className: "pw-avatar" }, h2(Mark, { status: attentionStatus(a) || a.status })), h2("span", { className: "pw-agent-copy" }, h2("span", { className: "pw-agent-name", title: a.storedSessionId || a.subagentId || a.sessionId || a.id }, a.name || a.profile || "Unnamed agent", (nameCounts.get(a.name || a.profile) || 0) > 1 ? ` \xB7 ${String(a.subagentId || a.storedSessionId || a.sessionId || a.id).slice(-8)}` : ""), h2("span", { className: "pw-agent-meta" }, attentionStatus(a) && a.status !== attentionStatus(a) ? "Earlier attention \xB7 " : "", (STATE[a.status] || STATE.unknown)[1], " \xB7 ", a.tool || a.activity || "observed"))))),
+            !list.total && h2("p", { className: "pw-caption" }, query ? "No agents match this search." : "No observed sessions yet."),
+            list.pages > 1 && h2("div", { className: "pw-toolbar" }, h2(Action2, { onClick: () => setPage(list.page - 1), disabled: list.page === 0 }, "Previous"), h2("span", null, `Page ${list.page + 1} of ${list.pages}`), h2(Action2, { onClick: () => setPage(list.page + 1), disabled: list.page === list.pages - 1 }, "Next"))
           )
         ),
-        h(
+        h2(
           "aside",
           { className: "pw-inspector", "aria-label": "Agent inspector" },
-          h(
+          h2(
             "section",
             null,
-            h("div", { className: "pw-inspector-title" }, h("div", { className: "pw-eyebrow" }, "At a glance"), h("h2", null, selected ? "Agent inspector" : "Meet your crew")),
-            selected ? h(
-              React.Fragment,
+            h2("div", { className: "pw-inspector-title" }, h2("div", { className: "pw-eyebrow" }, "At a glance"), h2("h2", null, selected ? "Agent inspector" : "Meet your crew")),
+            selected ? h2(
+              React2.Fragment,
               null,
-              h("p", { className: "pw-selected-name" }, selected.name || selected.profile),
-              h("span", { className: "pw-status-pill" }, h(Mark, { status: selected.status }), (STATE[selected.status] || STATE.unknown)[1]),
-              h("p", { className: "pw-detail" }, selected.detail || "State observed from the Hermes event stream."),
-              selected.verified === false && h("p", { className: "pw-explainer" }, "Historical observation; current activity is unverified."),
-              mode === "live" && selectedSource?.observation === "observed-lease" && h("p", { className: "pw-explainer" }, "Recent background events. Observation expires after 45 seconds of source silence; background socket health is not exposed."),
-              mode === "live" && selected.attention && h("div", { className: "pw-attention" }, h("p", { className: "pw-explainer" }, `An earlier ${selected.attention === "error" ? "error" : "input request"} remains flagged. Check the actual session.`), h(Action, { onClick: () => runtime.acknowledge(selected.id), title: "Clears this local reminder only. It does not approve or answer a Hermes request." }, "Dismiss local reminder")),
-              h("dl", { className: "pw-facts" }, [["Activity", selected.activity || "Unknown"], ["Tool", selected.tool || "No current tool"], ["Session", selected.storedSessionId || selected.subagentId || selected.sessionId || "Unresolved"], ["Profile", selected.profile || "Unresolved"], ["Connection", selected.connectionId || "Unresolved"], ["Team", selected.parentId ? agents.find((a) => a.id === selected.parentId)?.name || "Linked parent task" : agents.some((a) => a.parentId === selected.id) ? "Coordinating linked tasks" : "Independent session"]].map(([label2, value]) => h("div", { key: label2 }, h("dt", null, label2), h("dd", null, value)))),
-              mode === "live" ? h(React.Fragment, null, h(Action, { className: "pw-primary", disabled: !target || opening || !host2.openSession, onClick: openSession }, opening ? "Opening\u2026" : "Open actual session \u2197"), !target && h("p", { className: "pw-explainer" }, "Session navigation becomes available when Hermes supplies its durable ID and exact owner.")) : h("div", { className: "pw-demo-actions", "aria-label": "Demonstration state controls" }, h(Action, { onClick: () => demoState("waiting") }, "Needs input"), h(Action, { onClick: () => demoState("error") }, "Error"), h(Action, { onClick: () => demoState("active") }, "Working"), h(Action, { onClick: () => demoState("done") }, "Complete"))
-            ) : h("p", { className: "pw-detail" }, "Select a character or an agent below the scene. Work, attention, tools, and real parent\u2013child relationships stay intact when you change worlds."),
-            notice && h("p", { className: "pw-notice", role: "alert" }, notice)
+              h2("p", { className: "pw-selected-name" }, selected.name || selected.profile),
+              h2("span", { className: "pw-status-pill" }, h2(Mark, { status: selected.status }), (STATE[selected.status] || STATE.unknown)[1]),
+              h2("p", { className: "pw-detail" }, selected.detail || "State observed from the Hermes event stream."),
+              selected.verified === false && h2("p", { className: "pw-explainer" }, "Historical observation; current activity is unverified."),
+              mode === "live" && selectedSource?.observation === "observed-lease" && h2("p", { className: "pw-explainer" }, "Recent background events. Observation expires after 45 seconds of source silence; background socket health is not exposed."),
+              mode === "live" && selected.attention && h2("div", { className: "pw-attention" }, h2("p", { className: "pw-explainer" }, `An earlier ${selected.attention === "error" ? "error" : "input request"} remains flagged. Check the actual session.`), h2(Action2, { onClick: () => runtime.acknowledge(selected.id), title: "Clears this local reminder only. It does not approve or answer a Hermes request." }, "Dismiss local reminder")),
+              h2("dl", { className: "pw-facts" }, [["Activity", selected.activity || "Unknown"], ["Tool", selected.tool || "No current tool"], ["Session", selected.storedSessionId || selected.subagentId || selected.sessionId || "Unresolved"], ["Profile", selected.profile || "Unresolved"], ["Connection", selected.connectionId || "Unresolved"], ["Team", selected.parentId ? agents.find((a) => a.id === selected.parentId)?.name || "Linked parent task" : agents.some((a) => a.parentId === selected.id) ? "Coordinating linked tasks" : "Independent session"]].map(([label2, value]) => h2("div", { key: label2 }, h2("dt", null, label2), h2("dd", null, value)))),
+              mode === "live" ? h2(React2.Fragment, null, h2(Action2, { className: "pw-primary", disabled: !target || opening || !host2.openSession, onClick: openSession }, opening ? "Opening\u2026" : "Open actual session \u2197"), !target && h2("p", { className: "pw-explainer" }, "Session navigation becomes available when Hermes supplies its durable ID and exact owner.")) : h2("div", { className: "pw-demo-actions", "aria-label": "Demonstration state controls" }, h2(Action2, { onClick: () => demoState("waiting") }, "Needs input"), h2(Action2, { onClick: () => demoState("error") }, "Error"), h2(Action2, { onClick: () => demoState("active") }, "Working"), h2(Action2, { onClick: () => demoState("done") }, "Complete"))
+            ) : h2("p", { className: "pw-detail" }, "Select a character or an agent below the scene. Work, attention, tools, and real parent\u2013child relationships stay intact when you change worlds."),
+            notice && h2("p", { className: "pw-notice", role: "alert" }, notice)
           ),
-          h("section", { className: "pw-native" }, h("h2", null, "Connected to Hermes"), h("p", null, "Open native controls. The world reflects the work; Hermes stays in charge of execution."), h("div", { className: "pw-native-grid" }, [["Agents", "/agents"], ["Capabilities", "/skills"], ["MCP connections", "/skills?tab=mcp"], ["Schedules", "/cron"], ["Messaging", "/messaging"], ["Webhooks", "/webhooks"]].map(([title, path]) => h(Action, { key: path, onClick: () => host2.navigate(path) }, `${title} \u2197`)))),
-          feed.length > 0 && h("section", { className: "pw-feed" }, h("h2", null, "Recent signals"), feed.map((e, i) => h("div", { className: "pw-feed-row", key: e.id || i }, h("time", null, new Date(e.at || e.timestamp || e.time || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })), h("span", null, e.text || e.summary || e.type || "Activity observed"))))
+          h2("section", { className: "pw-native" }, h2("h2", null, "Connected to Hermes"), h2("p", null, "Open native controls. The world reflects the work; Hermes stays in charge of execution."), h2("div", { className: "pw-native-grid" }, [["Agents", "/agents"], ["Capabilities", "/skills"], ["MCP connections", "/skills?tab=mcp"], ["Schedules", "/cron"], ["Messaging", "/messaging"], ["Webhooks", "/webhooks"]].map(([title, path]) => h2(Action2, { key: path, onClick: () => host2.navigate(path) }, `${title} \u2197`)))),
+          feed.length > 0 && h2("section", { className: "pw-feed" }, h2("h2", null, "Recent signals"), feed.map((e, i) => h2("div", { className: "pw-feed-row", key: e.id || i }, h2("time", null, new Date(e.at || e.timestamp || e.time || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })), h2("span", null, e.text || e.summary || e.type || "Activity observed"))))
         )
       ),
-      h("footer", { className: "pw-footer" }, h("span", null, mode === "demo" ? "Demonstration is isolated from live telemetry." : "Source-qualified identities \xB7 No invented progress \xB7 Attention stays visible"), h("span", null, "PD Pixel Worlds \xB7 Public alpha"))
+      h2("footer", { className: "pw-footer" }, h2("span", null, mode === "demo" ? "Demonstration is isolated from live telemetry." : "Source-qualified identities \xB7 No invented progress \xB7 Attention stays visible"), h2("span", null, "PD Pixel Worlds \xB7 Public alpha"))
     ),
-    displayMode && h(
+    displayMode && h2(
       "div",
       { className: "pw-display-controls", "aria-label": "Display controls" },
-      h("div", { className: "pw-display-strip" }, h(Action, { className: "pw-display-exit", onClick: () => setDisplayMode(false), title: "Return to dashboard (Escape)" }, "Exit display"), h("span", { className: "pw-display-status", role: "status" }, mode === "demo" ? "Demo \xB7 illustrative" : observing ? "Live \xB7 observed streams" : "Live source \xB7 not connected", ` \xB7 ${list.visible.length} on stage \xB7 ${agents.length - list.visible.length} off-stage`, mode === "live" && stats.unknown ? ` \xB7 ${stats.unknown} unverified` : "", paused ? " \xB7 Paused" : "")),
-      h("div", { className: "pw-display-options" }, h("label", null, h("span", { className: "pw-display-label" }, "Theme"), h("select", { className: "pw-display-theme", "aria-label": "Display theme", value: theme, onChange: (e) => setTheme(e.target.value) }, themes.map((t) => h("option", { key: t.id, value: t.id }, t.title)))), h(Action, { "aria-pressed": paused, onClick: () => setPaused((p) => !p) }, paused ? "Resume animation" : "Pause animation"), h("span", { className: "pw-display-hint" }, "Esc to return"))
+      h2("div", { className: "pw-display-strip" }, h2(Action2, { className: "pw-display-exit", onClick: () => setDisplayMode(false), title: "Return to dashboard (Escape)" }, "Exit display"), h2("span", { className: "pw-display-status", role: "status" }, mode === "demo" ? "Demo \xB7 illustrative" : observing ? "Live \xB7 observed streams" : "Live source \xB7 not connected", ` \xB7 ${stageSummary}`, mode === "live" && stats.unknown ? ` \xB7 ${stats.unknown} unverified` : "", paused ? " \xB7 Paused" : "")),
+      theme === "bridge" && h2(ShipControls, { ship, mode, agents, selectedId, onSelect, compact: true }),
+      h2("div", { className: "pw-display-options" }, h2("label", null, h2("span", { className: "pw-display-label" }, "Theme"), h2("select", { className: "pw-display-theme", "aria-label": "Display theme", value: theme, onChange: (e) => setTheme(e.target.value) }, themes.map((t) => h2("option", { key: t.id, value: t.id }, t.title)))), h2(Action2, { "aria-pressed": paused, onClick: () => setPaused((p) => !p) }, paused ? "Resume animation" : "Pause animation"), h2("span", { className: "pw-display-hint" }, "Esc to return"))
     )
   );
 }
-function PWAgents({ runtime, host: host2, realmLibrary, preferences }) {
-  const snapshot = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
+function PWAgents({ runtime, host: host2, realmLibrary, preferences, ship }) {
+  const snapshot = useSyncExternalStore2(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
   const { theme, setTheme, paused, setPaused, reducedMotion, themes, realm } = useWorldSettings(preferences, realmLibrary);
-  const [mode, setMode] = useState("live"), [page, setPage] = useState(0), [selectedId, setSelected] = useState(null);
+  const [mode, setMode] = useState2("live"), [page, setPage] = useState2(0), [localSelected, setSelected] = useState2(null);
+  const shipState = useSyncExternalStore2(ship.subscribe, ship.getSnapshot, ship.getSnapshot);
+  const selectedId = theme === "bridge" ? shipState.selectedIds[mode] : localSelected;
   const demo = useMemo(demonstration, []), systemReduced = useReducedMotion();
   const agents = (mode === "demo" ? demo : snapshot).agents || [];
+  useEffect(() => {
+    ship.sync(agents, mode);
+  }, [ship, agents, mode]);
   const stats = counts(agents), list = useMemo(() => selectAgents(agents, { page }), [agents, page]);
   const observing = (snapshot.connections || []).some((c) => c.status === "open" || c.status === "observed");
-  const onSelect = useMemo(() => (id) => setSelected(typeof id === "object" ? id.id : id), []);
+  const onSelect = useMemo(() => (value) => {
+    const id = value && typeof value === "object" ? value.id : value;
+    setSelected(id);
+    ship.select(id, mode);
+    if (theme === "bridge" && id) ship.locate(id, mode);
+  }, [ship, mode, theme]);
   function changeMode(value) {
     setMode(value);
     setPage(0);
     setSelected(null);
+    ship.select(null, value);
   }
-  return h(
+  const stageSummary = theme === "bridge" ? shipSummary(shipState, mode) : `${list.visible.length} on stage \xB7 ${agents.length - list.visible.length} off-stage`;
+  return h2(
     "main",
     { className: "pw pw-agents", "data-mode": mode, "data-theme": theme },
-    h("style", null, styles),
-    h("div", { className: "pw-scene" }, h(Scene, { theme, realm, agents: list.visible, selectedId, onSelect, reducedMotion: reducedMotion || systemReduced, paused, displayMode: true }), !agents.length && h("div", { className: "pw-empty" }, h("b", null, "The room is ready."), "No observed agents. Demo shows an illustrative crew.")),
-    h(
+    h2("style", null, styles + shipStyles),
+    h2("div", { className: "pw-scene" }, h2(Scene, { theme, realm, agents: theme === "bridge" ? agents : list.visible, selectedId, onSelect, reducedMotion: reducedMotion || systemReduced, paused, displayMode: true, ship, shipMode: mode }), !agents.length && h2("div", { className: "pw-empty" }, h2("b", null, "The room is ready."), "No observed agents. Demo shows an illustrative crew.")),
+    h2(
       "div",
       { className: "pw-agents-controls", "aria-label": "PW Agents controls" },
-      h("div", { className: "pw-display-strip" }, h("strong", null, "PW Agents"), h("span", { className: "pw-agents-status", role: "status" }, mode === "demo" ? "Demo \xB7 illustrative" : observing ? "Live \xB7 observed streams" : "Live source \xB7 not connected", ` \xB7 ${list.visible.length} on stage \xB7 ${agents.length - list.visible.length} off-stage`, mode === "live" && stats.unknown ? ` \xB7 ${stats.unknown} unverified` : "", stats.attention ? ` \xB7 ${stats.attention} need attention` : "", paused ? " \xB7 Paused" : "")),
-      h("div", { className: "pw-agents-options" }, h(Action, { "aria-pressed": mode === "live", onClick: () => changeMode("live") }, "Live"), h(Action, { "aria-pressed": mode === "demo", onClick: () => changeMode("demo") }, "Demo"), h("select", { className: "pw-display-theme", "aria-label": "Agents theme", value: theme, onChange: (e) => setTheme(e.target.value) }, themes.map((t) => h("option", { key: t.id, value: t.id }, t.title))), h(Action, { "aria-pressed": paused, onClick: () => setPaused((p) => !p) }, paused ? "Resume animation" : "Pause animation"), h(Action, { onClick: () => host2.navigate("/pixel-worlds") }, "Return to Worlds")),
-      list.pages > 1 && h("div", { className: "pw-agents-pagination" }, h(Action, { onClick: () => setPage(list.page - 1), disabled: list.page === 0 }, "Previous"), h("span", null, `Page ${list.page + 1} of ${list.pages}`), h(Action, { onClick: () => setPage(list.page + 1), disabled: list.page === list.pages - 1 }, "Next"))
+      h2("div", { className: "pw-display-strip" }, h2("strong", null, "PW Agents"), h2("span", { className: "pw-agents-status", role: "status" }, mode === "demo" ? "Demo \xB7 illustrative" : observing ? "Live \xB7 observed streams" : "Live source \xB7 not connected", ` \xB7 ${stageSummary}`, mode === "live" && stats.unknown ? ` \xB7 ${stats.unknown} unverified` : "", stats.attention ? ` \xB7 ${stats.attention} need attention` : "", paused ? " \xB7 Paused" : "")),
+      h2("div", { className: "pw-agents-options" }, h2(Action2, { "aria-pressed": mode === "live", onClick: () => changeMode("live") }, "Live"), h2(Action2, { "aria-pressed": mode === "demo", onClick: () => changeMode("demo") }, "Demo"), h2("select", { className: "pw-display-theme", "aria-label": "Agents theme", value: theme, onChange: (e) => setTheme(e.target.value) }, themes.map((t) => h2("option", { key: t.id, value: t.id }, t.title))), h2(Action2, { "aria-pressed": paused, onClick: () => setPaused((p) => !p) }, paused ? "Resume animation" : "Pause animation"), h2(Action2, { onClick: () => host2.navigate("/pixel-worlds") }, "Return to Worlds")),
+      theme === "bridge" && h2(ShipControls, { ship, mode, agents, selectedId, onSelect, compact: true }),
+      theme !== "bridge" && list.pages > 1 && h2("div", { className: "pw-agents-pagination" }, h2(Action2, { onClick: () => setPage(list.page - 1), disabled: list.page === 0 }, "Previous"), h2("span", null, `Page ${list.page + 1} of ${list.pages}`), h2(Action2, { onClick: () => setPage(list.page + 1), disabled: list.page === list.pages - 1 }, "Next"))
     )
   );
 }
 
 // src/plugin.js
-var h2 = React2.createElement;
+var h3 = React3.createElement;
 function Chip({ runtime }) {
-  const s = useSyncExternalStore2(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
+  const s = useSyncExternalStore3(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
   const c = counts(s.agents);
-  return h2(Button2, { type: "button", title: `Pixel Worlds \xB7 ${c.active} working \xB7 ${c.attention} need attention`, onClick: () => host.navigate("/pixel-worlds"), style: { fontSize: 10, padding: "0 6px", height: 22 } }, `\u25C7 Worlds ${c.active}${c.attention ? ` \xB7 ! ${c.attention}` : ""}`);
+  return h3(Button3, { type: "button", title: `Pixel Worlds \xB7 ${c.active} working \xB7 ${c.attention} need attention`, onClick: () => host.navigate("/pixel-worlds"), style: { fontSize: 10, padding: "0 6px", height: 22 } }, `\u25C7 Worlds ${c.active}${c.attention ? ` \xB7 ! ${c.attention}` : ""}`);
 }
 var plugin_default = {
   id: "pixel-worlds",
@@ -2389,21 +3951,22 @@ var plugin_default = {
     const runtime = createRuntime();
     if (typeof ctx.onDispose !== "function") throw new Error("Pixel Worlds needs the Desktop plugin cleanup API.");
     const stop = connectHermes(host, runtime);
-    const realmLibrary = createRealmLibrary(ctx.storage), preferences = createWorldPreferences(ctx.storage);
+    const realmLibrary = createRealmLibrary(ctx.storage), preferences = createWorldPreferences(ctx.storage), ship = createShip({ rooms: SHIP_ROOMS, storage: ctx.storage });
     const openExternal = (url) => ctx.os?.openExternal ? ctx.os.openExternal(url) : globalThis.open?.(url, "_blank", "noopener,noreferrer");
-    const props = { runtime, storage: ctx.storage, host, realmLibrary, preferences, openExternal };
+    const props = { runtime, storage: ctx.storage, host, realmLibrary, preferences, openExternal, ship };
     ctx.onDispose(() => {
       stop();
+      ship.dispose();
       realmLibrary.dispose();
       preferences.dispose();
       runtime.destroy?.();
     });
-    ctx.register({ id: "world-page", area: ROUTES_AREA, title: "Pixel Worlds", data: { path: "/pixel-worlds" }, render: () => h2(PixelWorlds, props) });
-    ctx.register({ id: "agents-page", area: ROUTES_AREA, title: "PW Agents", data: { path: "/pw-agents" }, render: () => h2(PWAgents, props) });
+    ctx.register({ id: "world-page", area: ROUTES_AREA, title: "Pixel Worlds", data: { path: "/pixel-worlds" }, render: () => h3(PixelWorlds, props) });
+    ctx.register({ id: "agents-page", area: ROUTES_AREA, title: "PW Agents", data: { path: "/pw-agents" }, render: () => h3(PWAgents, props) });
     ctx.register({ id: "agents-nav", area: SIDEBAR_NAV_AREA, data: { path: "/pw-agents", label: "PW Agents", codicon: "organization" } });
     ctx.register({ id: "agents-open", area: PALETTE_AREA, data: { id: "pixel-worlds.agents", label: "PW Agents: Open daily agent view", keywords: ["agents", "pixel", "daily", "display"], run: () => host.navigate("/pw-agents") } });
     ctx.register({ id: "world-nav", area: SIDEBAR_NAV_AREA, data: { path: "/pixel-worlds", label: "Pixel Worlds", codicon: "globe" } });
-    ctx.register({ id: "world-chip", area: STATUSBAR_AREAS.right, order: 109, render: () => h2(Chip, { runtime }) });
+    ctx.register({ id: "world-chip", area: STATUSBAR_AREAS.right, order: 109, render: () => h3(Chip, { runtime }) });
     ctx.register({ id: "world-open", area: PALETTE_AREA, data: { id: "pixel-worlds.open", label: "Pixel Worlds: Open live agent worlds", keywords: ["pixel", "office", "kitten", "cafe", "trek", "tng"], run: () => host.navigate("/pixel-worlds") } });
   }
 };

@@ -1,22 +1,87 @@
 import {painter,rng} from './pixels.js';
+import {drawLcarsPanel} from './lcars.js';
 
 // One camera, facing aft from the viewscreen. The screen is behind the viewer.
 // Reference hierarchy: luminous dome → aft stations → wood arc/three chairs → twin helm.
 export const BRIDGE_ANCHORS=[[240,195],[161,248],[319,248],[196,199],[284,199],[240,145],[184,147],[296,147],[67,191],[413,191],[77,254],[403,254]];
 const C={wall:'#9f8e77',light:'#dfcfac',seam:'#6d6255',floor:'#697674',rose:'#916863',wood:'#81523b',black:'#191e23'};
 
-// Dense, asymmetric LCARS information, rather than identical colored keypads.
+// Shallow controls reuse the bounded grammar. The aft bank has five distinct,
+// mostly black instruments, rather than five oversized identical LCARS elbows.
 function panel(p,x,y,w,h,skew=0,seed=1){
- const random=rng(seed),{poly:q}=p;
- const box=(a,b,c,d,color)=>q([[x+a,y+b+a*skew],[x+a+c,y+b+(a+c)*skew],[x+a+c,y+b+d+(a+c)*skew],[x+a,y+b+d+a*skew]],color);
- box(0,0,w,h,C.black);box(2,2,w-4,1,'#536058');
- const colors=['#e4c894','#b0a1c4','#cd9179','#8fb3b0','#e6d3ab'];
- const cols=Math.max(2,Math.floor(w/32)),cw=(w-6)/cols;
- for(let n=0;n<cols;n++){
-  const a=3+n*cw;box(a,4,cw-3,2,colors[n%5]);box(a,8,3,h-13,colors[(n+2)%5]);box(a+4,h-7,cw-7,2,'#b4c2a4');
-  for(let j=0;j<5;j++){const yy=9+j*(h-18)/5;box(a+6,yy,3+random()*Math.max(3,cw-14),1,colors[(j+n)%5]);box(a+cw-5,yy,2,1,'#90a0aa');}
-  if(n%2===0){box(a+cw/2,11,1,h-21,'#6d878a');box(a+cw/2-3,16,7,1,'#ccaa78');}
+ const count=w>120?5:w>=60?3:1,step=Math.floor((w-4)/count);
+ for(let u=0;u<w;u++)p.rect(x+u,y+u*skew,1,h,C.black);
+ for(let i=0;i<count;i++){
+  const left=2+i*step;
+  if(h<14){drawLcarsPanel(p,x+left,y+left*skew,step-2,h,{seed:seed+i,skew});continue;}
+  const r=(a,b,ww,hh,color)=>{for(let u=a;u<a+ww;u++)p.rect(x+left+u,y+b+(left+u)*skew,1,hh,color);};
+  const l=(a,b,c,d,color)=>{const n=Math.max(Math.abs(c-a),Math.abs(d-b));for(let j=0;j<=n;j++)r(Math.round(a+(c-a)*j/(n||1)),Math.round(b+(d-b)*j/(n||1)),1,1,color);};
+  const trace=points=>{for(let j=1;j<points.length;j++)l(...points[j-1],...points[j],'#89a6b0');};
+  const amber='#c8b68d',lilac='#b4a4c0',cream='#e0d5b6';
+  r(0,2,step-2,h-4,'#101218');
+  r(2,4,[12,19,10,15,21][i],2,i%2?lilac:amber);r(2,6,2,7,amber);
+  r(2,15,2,4,lilac);r(2,21,2,4,'#d7a17e');r(26,4,3,1,cream);
+  if(i===0){
+   trace([[8,10],[14,10],[14,22],[29,22]]);
+   for(let j=0;j<3;j++){trace([[18+j*4,22],[18+j*4,12+j*2]]);r(17+j*4,11+j*2,3,2,j%2?lilac:cream);}
+   r(7,17,4,1,amber);r(7,20,3,1,lilac);
+  }else if(i===1){
+   trace([[12,10],[23,10],[28,14],[28,20],[23,24],[12,24],[8,20],[8,14],[12,10]]);
+   trace([[14,14],[21,14],[24,17],[21,21],[14,21],[11,17],[14,14]]);
+   l(7,23,27,11,'#d7a17e');r(17,16,2,2,cream);
+  }else if(i===2){
+   for(let j=0;j<4;j++)r(15,10+j*4,4,2,j===2?cream:lilac);
+   trace([[12,10],[10,10],[10,23],[12,23]]);trace([[21,12],[25,12],[25,19],[29,19]]);
+   r(6,15,3,1,amber);r(27,23,3,1,cream);
+  }else if(i===3){
+   for(let j=0;j<5;j++){r(8,10+j*3,[10,15,7,13,9][j],1,j%2?cream:lilac);r(27,10+j*3,2,1,amber);}
+   r(23,10,1,15,'#536a79');
+  }else{
+   trace([[7,19],[12,19],[16,13],[24,13],[28,17],[24,21],[16,21],[12,19]]);
+   trace([[18,13],[18,9],[26,9]]);trace([[18,21],[18,24],[28,24]]);
+   r(17,16,8,2,cream);r(7,10,4,1,lilac);r(8,24,5,1,amber);
+  }
+  r(7,27,8,1,i%2?amber:lilac);r(20,27,9,1,'#d7a17e');
  }
+}
+// One continuous wall plane down to the red skirting. Its five cabinet rows
+// straddle a dark recess; no projecting keyboard shelf or lower light diffuser.
+function sideWall(p,side){
+ const point=(x,v)=>[side<0?x:480-x,98-13*x/98+v/110*(108-30*x/98)];
+ const poly=(pts,color)=>p.poly(pts.map(([x,v])=>point(x,v)),color);
+ const box=(x,v,w,h,color)=>poly([[x,v],[x+w,v],[x+w,v+h],[x,v+h]],color);
+ box(0,0,98,110,'#a48f76');box(2,3,94,103,'#b09a7e');
+ // Recessed cool cove above the panels, not a light across the floor.
+ box(4,5,90,3,'#7e8d99');box(5,5,88,1,'#c7d9df');
+ box(6,21,68,78,'#72695f');box(7,22,66,76,'#a79a88');
+ for(const x of [8,30,52]){
+  for(const [v,h]of [[23,12],[36,12],[56,12],[69,12],[82,13]]){
+   box(x,v,20,h,'#89858a');
+   box(x+13,v+3,6,2,'#16191d');box(x+17,v+3,1,1,'#e6dfc9');
+  }
+  box(x,49,20,6,'#11151b');
+ }
+ // Narrow vertical systems instrument beside the aft door. At this scale the
+ // two gold silhouettes and the small blue/gold readout carry the recognition.
+ box(78,14,16,85,'#756b5e');box(79,15,14,83,'#141a20');
+ box(80,17,12,19,'#10151b');box(80,40,12,31,'#10151b');box(80,76,12,19,'#10151b');
+ poly([[81,47],[83,44],[87,44],[88,42],[91,44],[91,46],[87,47],[85,49],[81,49]],'#b59a5d');
+ poly([[84,54],[89,54],[91,58],[91,62],[89,66],[84,66],[82,62],[82,58]],'#b59a5d');
+ poly([[85,55],[88,55],[90,59],[90,62],[88,65],[85,65],[83,62],[83,59]],'#6f613c');
+ box(81,56,4,2,'#b59a5d');box(81,63,4,2,'#b59a5d');
+ for(let i=0;i<5;i++){box(81+i*2,80,1,2,i%2?'#b8cdd7':'#648eae');box(81+i*2,84,1,2,i%2?'#c9b37e':'#83a4bc');}
+ box(0,107,98,3,'#793f43');
+}
+function helmChair(p,x){
+ const {rect:r,poly:q,oval:o}=p;
+ // Slim armless seats, with the cushion aligned to the existing seated crew.
+ o(x,278,15,3,'#303a3b55');r(x-5,248,10,28,'#635f54');r(x-3,250,3,24,'#a29984');r(x+2,250,1,24,'#827969');
+ q([[x-13,237],[x-11,209],[x-7,204],[x+8,204],[x+12,209],[x+14,237]],'#88725e');
+ q([[x-11,237],[x-9,210],[x+9,210],[x+12,237]],'#bea17e');
+ r(x-8,205,17,5,'#d7bd96');r(x-7,211,15,24,'#c4a780');
+ for(let y=217;y<235;y+=7){r(x-8,y,18,1,'#8f785f');r(x-7,y+1,17,1,'#dfc49b');}
+ q([[x-12,238],[x+13,238],[x+17,245],[x+13,250],[x-12,250],[x-15,245]],'#b09370');
+ q([[x-11,238],[x+12,238],[x+14,244],[x-13,244]],'#dfc49b');r(x-10,248,21,2,'#8f785f');
 }
 function chair(p,x,y,s=1){
  const {rect:r,poly:q,oval:o}=p;const P=(pts,c)=>q(pts.map(([a,b])=>[x+a*s,y+b*s]),c),R=(a,b,w,h,c)=>r(x+a*s,y+b*s,w*s,h*s,c);
@@ -51,23 +116,15 @@ export function drawBridge(p){
   r(x+13,117,6,2,'#514e44');r(x+23,117,4,2,'#efe0b9');r(x+1,145,40,2,'#d2c09e');
  }
  for(const x of [145,331]){r(x,93,4,45,'#282727');r(x+1,99,2,9,'#d7a474');r(x+1,113,2,6,'#d07d59');r(x+1,125,2,9,'#e0b07a');}
- // Side stations recede to the same vanishing point as the aft wall.
- q([[0,98],[98,85],[98,149],[0,183]],'#cab591');q([[4,101],[95,89],[95,138],[4,167]],'#655e50');panel(p,8,111,83,38,-.22,4);
- q([[480,98],[382,85],[382,149],[480,183]],'#cab591');q([[476,101],[385,89],[385,138],[476,167]],'#655e50');panel(p,389,93,83,38,.22,6);
- q([[3,161],[94,139],[97,148],[6,174]],'#c8b18e');q([[477,161],[386,139],[383,148],[474,174]],'#c8b18e');
- q([[8,174],[92,151],[89,174],[16,206]],'#9b866b');q([[472,174],[388,151],[391,174],[464,206]],'#9b866b');
- q([[15,183],[87,160],[86,171],[23,198]],'#d4eee5');q([[465,183],[393,160],[394,171],[457,198]],'#d4eee5');
- // Three low risers support only the command island.
- o(240,193,116,38,'#414847');o(240,188,116,37,'#b49079');o(240,186,112,34,'#755954');
- q([[137,180],[143,198],[176,214],[209,220],[272,220],[305,214],[337,198],[343,180],[341,200],[307,218],[272,225],[208,225],[173,219],[139,202]],'#b59780');
- l(160,209,187,217,'#d0dfcc');l(191,218,288,218,'#c7d6c4');l(293,217,320,209,'#d0dfcc');
- o(240,181,107,34,C.rose);q([[145,145],[335,145],[345,180],[135,180]],C.rose);
- o(240,200,70,13,'#737b73');
- // Command seats: captain centered, two companion seats slightly forward.
- chair(p,196,194,.9);chair(p,240,190,1);chair(p,284,194,.9);
- for(const x of [163,306]){q([[x,177],[x+12,179],[x+18,201],[x+2,202]],'#b69c80');q([[x-2,171],[x+10,169],[x+15,179],[x,181]],'#d0b391');r(x+1,172,8,3,'#34353a');r(x+2,173,5,1,'#dbb590');}
+ // Mirrored complete side-wall treatments share the same architectural plane.
+ sideWall(p,-1);sideWall(p,1);
+ // One continuous rose command carpet, with no inset oval or tiered front rim.
+ // The aft and side circulation remains slate; the forward edge stays open.
+ q([[117,211],[126,192],[144,175],[170,161],[202,152],[240,149],[278,152],[310,161],[336,175],[354,192],[363,211],[350,223],[314,230],[166,230],[130,223]],C.rose);
+ // The command furniture is painted with the rail, in depth order, so its
+ // central tactical support cannot overwrite an unoccupied chair back.
  // Lower conn/ops chairs. Their forward desk faces are a separate occlusion layer.
- chair(p,161,266,1.14);chair(p,319,266,1.14);
+ helmChair(p,161);helmChair(p,319);
  // The luminous, segmented canopy is the visual roof, not a wall-mounted screen.
  o(240,-12,283,98,'#4b3c2d');o(240,-14,276,91,'#bdac88');o(240,-18,269,89,'#eee2bd');
  o(240,-22,267,83,'#f7efcf');
@@ -87,24 +144,48 @@ export function drawBridge(p){
 export function drawBridgeRail(ctx){
  const p=painter(ctx),{poly:q,line:l}=p;
  const arc=[[117,211],[125,191],[143,173],[169,157],[200,147],[240,143],[280,147],[311,157],[337,173],[355,191],[363,211]];
- q([[220,146],[260,146],[250,160],[247,176],[232,176],[229,160]],'#c4b294');
+ const inner=[[119,211],[129,194],[148,179],[173,165],[203,157],[240,153],[277,157],[307,165],[332,179],[351,194],[361,211]];
+ // Broad at the tactical crown, tapering to the floor at the two open ends.
+ q([[201,146],[279,146],[270,157],[259,169],[251,179],[249,187],[231,187],[229,179],[221,169],[210,157]],'#a89e8e');
+ q([[205,148],[275,148],[266,158],[255,170],[247,184],[233,184],[225,170],[214,158]],'#d0c6b4');
+ l(211,150,227,170,'#e2d8c5');l(269,150,253,170,'#afa596');
+ q([...inner,...inner.map(([x,y])=>[x,y+2]).reverse()],'#674333');
+ q([...arc,...[...inner].reverse()],C.wood);
  for(let i=1;i<arc.length;i++){
-  const [x,y]=arc[i-1],[xx,yy]=arc[i];q([[x,y],[xx,yy],[xx,yy+5],[x,y+5]],'#674333');l(x,y,xx,yy,'#b1855b',2);l(x,y+2,xx,yy+2,'#916144',2);
+  l(...arc[i-1],...arc[i],'#b1855b');l(...inner[i-1],...inner[i],'#916144');
+ }
+ // These surfaces sit in front of the rear rail/support, but behind the crew.
+ // Their shapes and station anchors are unchanged.
+ chair(p,196,194,.9);chair(p,240,190,1);chair(p,284,194,.9);
+ for(const side of [-1,1]){
+  const P=(pts,color)=>q(pts.map(([x,y])=>[240+side*x,y]),color);
+  // Low companion seats and angled side controls, with their white front insets.
+  P([[64,180],[79,180],[87,184],[86,190],[69,190]],'#9a7c61');
+  P([[65,180],[79,180],[85,183],[82,186],[67,186]],'#d1b18a');
+  P([[61,178],[74,175],[87,187],[84,203],[66,201]],'#a78c71');
+  P([[65,181],[74,180],[83,189],[80,199],[68,198]],'#e1e9df');
+  P([[61,171],[72,167],[80,177],[67,183],[59,178]],'#d2b594');
+  P([[62,172],[71,169],[76,176],[66,179]],'#bca080');
+  P([[64,172],[70,170],[73,173],[66,175]],'#434044');
  }
 }
 export function drawBridgeHelm(ctx){
- const p=painter(ctx),{rect:r,poly:q,line:l,oval:o}=p;
- for(const center of [161,319]){
-  const x=center-49;
-  o(center,284,51,7,'#34413f60');
-  q([[x+6,247],[x+94,247],[x+84,282],[x+14,282]],'#6d6252');
-  q([[x+10,250],[x+91,250],[x+80,279],[x+16,279]],'#b3a180');
-  q([[x+12,253],[x+39,253],[x+37,273],[x+30,279],[x+18,277]],'#d6f2e8');
-  q([[x+20,281],[x+80,281],[x+89,285],[x+15,285]],'#50534a');
-  q([[x+6,232],[x+90,232],[x+103,248],[x-5,248]],'#cfb791');
-  q([[x+7,233],[x+88,233],[x+95,240],[x+1,240]],'#4b4540');
-  panel(p,x+12,234,72,5,0,center);
-  q([[x-5,241],[x+100,241],[x+103,248],[x+98,254],[x-4,254],[x-8,249]],'#bba17e');
-  l(x-4,242,x+98,242,'#e2cdaa',2);l(x-3,254,x+97,254,'#7a6956');
+ const p=painter(ctx),{poly:q,line:l,oval:o}=p;
+ for(const side of [-1,1]){
+  const center=240+side*79,P=(pts,color)=>q(pts.map(([x,y])=>[center+side*x,y]),color);
+  // One lighted OUTBOARD support per desk; the inboard knee space stays open.
+  o(center,284,48,5,'#34413f45');
+  P([[-37,281],[42,281],[46,285],[-39,285]],'#3d4544');
+  P([[17,248],[46,248],[43,276],[37,281],[21,281],[13,273]],'#665c50');
+  P([[20,246],[44,247],[40,275],[35,278],[22,278],[16,271]],'#a79378');
+  P([[20,253],[43,253],[40,273],[35,277],[23,277],[17,270]],'#d6eee5');
+  P([[21,255],[40,255],[37,270],[33,274],[23,274],[20,269]],'#e6f5e9');
+  P([[-40,235],[40,235],[49,241],[-49,241]],'#bfa687');
+  P([[-37,236],[37,236],[43,241],[-43,241]],'#29292c');
+  panel(p,center-34,236,68,4,0,side<0?11:19);
+  P([[-49,240],[49,240],[52,243],[48,247],[-47,247],[-52,244]],'#a88e72');
+  P([[-48,240],[48,240],[49,242],[-49,242]],'#d2b999');
+  P([[-49,242],[49,242],[47,245],[-47,245]],'#bba083');
+  l(center-46,246,center+46,246,'#82705d');
  }
 }

@@ -77,6 +77,28 @@ try {
  assert.equal(await page.locator('.pw-agent').count(),12);
  assert.equal(await page.evaluate(()=>window.__pixelWorldsPreview.host.listenerCount()),listeners);
  check('Routes share preferences, imported realms and live state');
+ // Clearing the shared selection must win over either route's stale local ID.
+ await page.getByRole('button',{name:'The Next Generation',exact:true}).click();
+ for(const route of ['/pixel-worlds','/pw-agents']){
+  if(route==='/pw-agents'){await page.getByRole('button',{name:'PW Agents',exact:true}).click();await page.locator('.pw-agents').waitFor();}
+  await page.locator('.pw-ship-summary').click();
+  const crew=page.getByRole('combobox',{name:'Crew member',exact:true});
+  const id=await crew.locator('option').nth(1).getAttribute('value');
+  await crew.selectOption(id);assert.equal(await crew.inputValue(),id);
+  await page.evaluate(()=>window.__pixelWorldsPreview.getContributions().find(c=>c.id==='world-page').render().props.ship.select(null,'live'));
+  await page.waitForFunction(()=>document.querySelector('.pw-ship-crew select')?.value==='');
+  assert.equal(await page.getByRole('button',{name:'Locate crew',exact:true}).isDisabled(),true);
+  const styling=await page.evaluate(()=>{
+   const standard=document.querySelector('.pw-agents-options button')||document.querySelector('.pw-toolbar button');
+   const style=element=>{const s=getComputedStyle(element);return {font:s.fontSize,padding:s.padding,radius:s.borderRadius,height:element.getBoundingClientRect().height};};
+   const panel=document.querySelector('.pw-ship');
+   return {standard:style(standard),scene:style(panel.querySelector('button')),decoration:getComputedStyle(panel,'::before').content,roomWidth:panel.querySelector('button').getBoundingClientRect().width};
+  });
+  assert.deepEqual(styling.scene,styling.standard,'Scene buttons use the standard compact control styling');
+  assert.equal(styling.decoration,'none');assert.ok(styling.roomWidth<160,'Room button does not stretch across the panel');
+ }
+ check('Both routes honor shared deselection and use standard compact, undecorated scene buttons');
+ await page.getByRole('combobox',{name:'Agents theme'}).selectOption('import:pd-office-space');
  await page.evaluate(()=>window.__pixelWorldsPreview.unmount());
  await page.waitForFunction(()=>document.querySelectorAll('canvas').length===0);
  assert.equal(await page.evaluate(()=>window.__pixelWorldsPreview.host.listenerCount()),0);

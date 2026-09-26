@@ -5,6 +5,8 @@ import {connectHermes} from './bridge.js';
 import {PixelWorlds,PWAgents,createWorldPreferences} from './app.js';
 import {createRealmLibrary} from './realm-packages.js';
 import {counts} from './ui-model.js';
+import {createShip} from './ship.js';
+import {SHIP_ROOMS} from './ship-layout.js';
 const h=React.createElement;
 function Chip({runtime}){const s=useSyncExternalStore(runtime.subscribe,runtime.getSnapshot,runtime.getSnapshot);const c=counts(s.agents);return h(Button,{type:'button',title:`Pixel Worlds · ${c.active} working · ${c.attention} need attention`,onClick:()=>host.navigate('/pixel-worlds'),style:{fontSize:10,padding:'0 6px',height:22}},`◇ Worlds ${c.active}${c.attention?` · ! ${c.attention}`:''}`);}
 export default {
@@ -13,10 +15,10 @@ export default {
   const runtime=createRuntime();
   if(typeof ctx.onDispose!=='function')throw new Error('Pixel Worlds needs the Desktop plugin cleanup API.');
   const stop=connectHermes(host,runtime);
-  const realmLibrary=createRealmLibrary(ctx.storage),preferences=createWorldPreferences(ctx.storage);
+  const realmLibrary=createRealmLibrary(ctx.storage),preferences=createWorldPreferences(ctx.storage),ship=createShip({rooms:SHIP_ROOMS,storage:ctx.storage});
   const openExternal=url=>ctx.os?.openExternal?ctx.os.openExternal(url):globalThis.open?.(url,'_blank','noopener,noreferrer');
-  const props={runtime,storage:ctx.storage,host,realmLibrary,preferences,openExternal};
-  ctx.onDispose(()=>{stop();realmLibrary.dispose();preferences.dispose();runtime.destroy?.();});
+  const props={runtime,storage:ctx.storage,host,realmLibrary,preferences,openExternal,ship};
+  ctx.onDispose(()=>{stop();ship.dispose();realmLibrary.dispose();preferences.dispose();runtime.destroy?.();});
   ctx.register({id:'world-page',area:ROUTES_AREA,title:'Pixel Worlds',data:{path:'/pixel-worlds'},render:()=>h(PixelWorlds,props)});
   ctx.register({id:'agents-page',area:ROUTES_AREA,title:'PW Agents',data:{path:'/pw-agents'},render:()=>h(PWAgents,props)});
   ctx.register({id:'agents-nav',area:SIDEBAR_NAV_AREA,data:{path:'/pw-agents',label:'PW Agents',codicon:'organization'}});
