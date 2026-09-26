@@ -1,6 +1,6 @@
 import React from 'react';
 // Browser-only stand-in. Installed builds import Hermes's real SDK Button.
-export const Button=React.forwardRef(function PreviewButton({variant,size,asChild,children,style,...props},ref){return React.createElement('button',{...props,ref,style:{font:'inherit',color:'inherit',background:'transparent',border:'1px solid var(--ui-stroke-secondary)',borderRadius:6,padding:'6px 10px',cursor:props.disabled?'default':'pointer',opacity:props.disabled?0.45:1,...style}},children);});
+export const Button=React.forwardRef(function PreviewButton({variant,size,asChild,children,style,className='',...props},ref){return React.createElement('button',{...props,ref,className:`preview-sdk-button ${className}`,style:{font:'inherit',border:'1px solid var(--ui-stroke-secondary)',borderRadius:6,padding:'6px 10px',cursor:props.disabled?'default':'pointer',opacity:props.disabled?0.45:1,...style}},children);});
 export const ROUTES_AREA='routes',SIDEBAR_NAV_AREA='sidebar.nav',PALETTE_AREA='commandPalette',STATUSBAR_AREAS={right:'statusBar.right'};
 export function atom(value){const listeners=new Set();return {get:()=>value,set:v=>{value=v;listeners.forEach(f=>f(v));},listen:f=>{listeners.add(f);return()=>listeners.delete(f);},subscribe:f=>{listeners.add(f);f(value);return()=>listeners.delete(f);}};}
 const listeners=new Set();

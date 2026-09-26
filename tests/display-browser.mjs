@@ -2,6 +2,8 @@ import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {startPreview} from '../scripts/preview.mjs';
 import {SHIP_ROOMS} from '../src/ship-layout.js';
+import {checkHostTheme,checkControlColors} from './host-theme-browser.mjs';
+import {hostThemeCSS} from './host-theme-fixture.mjs';
 const bridgeCapacity=SHIP_ROOMS.bridge.stations.length,engineeringCapacity=SHIP_ROOMS.engineering.stations.length;
 const server=process.env.PIXEL_WORLDS_URL?null:await startPreview();
 const browser=await chromium.launch({headless:true});
@@ -15,6 +17,14 @@ try{
  assert.equal(await page.locator('.pw').getAttribute('data-display'),'false');
  await page.getByRole('button',{name:'Explore themes',exact:true}).click();
  await page.locator('.pw-agent').first().click();
+ await page.addStyleTag({content:hostThemeCSS});
+ for(const mode of ['dark','light']){
+  await page.evaluate(mode=>document.documentElement.dataset.testHostMode=mode,mode);
+  await page.getByRole('button',{name:'Display mode',exact:true}).focus();
+  await page.getByRole('button',{name:'Display mode',exact:true}).hover();
+  await checkControlColors(page);
+  await page.screenshot({path:new URL(`../evidence/host-theme-worlds-${mode}.png`,import.meta.url).pathname});
+ }
  const crew=await page.locator('.pw-agent-grid').textContent();
  const selected=await page.locator('.pw-selected-name').innerText();
  await page.getByRole('button',{name:'Display mode',exact:true}).click();
@@ -75,5 +85,38 @@ try{
  await page.reload();await page.getByRole('button',{name:'Display mode',exact:true}).waitFor();
  assert.equal(await page.locator('.pw').getAttribute('data-display'),'false');
  check('Display preference survives reload and explicit exit clears it');
+ // Compact Trek controls sit beside, not underneath, the shared toolbar.
+ for(const daily of [false,true]){
+  await page.setViewportSize({width:1440,height:900});
+  await page.getByRole('button',{name:daily?'PW Agents':'Display mode',exact:true}).click();
+  const surface=page.locator(daily?'.pw-agents-controls':'.pw-display-controls');
+  await page.getByRole('combobox',{name:daily?'Agents theme':'Display theme',exact:true}).selectOption('bridge');
+  const ship=surface.locator('.pw-ship--compact'),strip=surface.locator('.pw-display-strip');
+  for(const expanded of [false,true]){
+   if(expanded)await ship.locator('summary').click();
+   const s=await ship.boundingBox(),c=await strip.boundingBox();
+   assert.ok(s.x>=c.x+c.width,'Trek controls expand to the RIGHT of common controls');
+   assert.ok(Math.abs(s.y-c.y)<2,'Trek controls align with the top of the common toolbar');
+  }
+  await checkHostTheme(page,surface,daily?'daily':'display');
+  await page.screenshot({path:new URL(`../evidence/trek-controls-${daily?'daily':'display'}-wide.png`,import.meta.url).pathname});
+  for(const width of [640,390]){
+   await page.setViewportSize({width,height:500});
+   const box=await surface.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width&&box.y+box.height<=500);
+   assert.ok(await surface.evaluate(e=>e.scrollWidth<=e.clientWidth+1),'No horizontally clipped controls');
+   const start=surface.locator('button').first();await start.focus();
+   const count=await surface.locator('button:not(:disabled),select,summary').count();
+   for(let i=0;i<count;i++){
+    assert.ok(await surface.evaluate(e=>{
+     const a=document.activeElement,r=a.getBoundingClientRect(),b=e.getBoundingClientRect();
+     return e.contains(a)&&r.x>=b.x&&r.right<=b.right+1&&r.y>=b.y&&r.bottom<=b.bottom+1;
+    }),'Tab-focused control stays visible inside the scrollable surface');
+    await page.keyboard.press('Tab');
+   }
+   await page.screenshot({path:new URL(`../evidence/trek-controls-${daily?'daily':'display'}-${width}.png`,import.meta.url).pathname});
+  }
+  if(!daily)await page.keyboard.press('Escape');
+ }
+ check('Trek display/daily controls expand right, use opaque host palettes, and remain keyboard-accessible in narrow panes');
  assert.deepEqual(errors,[]);check('No uncaught browser errors');
 }finally{await browser.close();await server?.close();}

@@ -9,7 +9,6 @@ import {shipStyles} from './ship-styles.js';
 import {SHIP_ROOM_LABELS} from './ship.js';
 const h=React.createElement;
 const STATE={active:['◆','Working'],waiting:['!','Needs input'],error:['×','Needs attention'],done:['✓','Turn complete'],idle:['○','Idle'],queued:['◇','Queued'],unknown:['?','Unverified']};
-const COLORS=['#bba27c','#c58f72','#b3a4c7'];
 function Action({children,...props}){return h(Button,{type:'button',...props},children);}
 function Mark({status}){return h('span',{className:'pw-mark','aria-hidden':true},(STATE[status]||STATE.unknown)[0]);}
 function shipSummary(snapshot,mode){const p=snapshot.populations[mode],c=p.counts;return `${c[snapshot.room]} in ${SHIP_ROOM_LABELS[snapshot.room]} · ${p.total-c[snapshot.room]-c.offstage-c.transit} elsewhere · ${c.transit} in transit · ${c.offstage} off-stage`;}
@@ -111,7 +110,7 @@ export function PixelWorlds({runtime,storage,host,realmLibrary,preferences,openE
   h('header',{className:'pw-header'},h('div',null,h('div',{className:'pw-eyebrow'},'Your agents, a world of their own'),h('h1',null,'Pixel Worlds'),h('p',{className:'pw-caption'},'One live crew. Three places to make things happen.')),
    h('div',{className:'pw-header-controls'},h('div',{className:'pw-mode','aria-label':'Data source'},h(Action,{'aria-pressed':mode==='live',onClick:()=>changeMode('live')},'Live agents'),h(Action,{'aria-pressed':mode==='demo',onClick:()=>changeMode('demo')},'Explore themes')))),
   h(RealmManager,{realmLibrary,realm,setTheme,openExternal}),
-  h('div',{className:'pw-topline'},h('div',{className:'pw-world-tabs','aria-label':'World theme'},themes.map((t,i)=>h(Action,{key:t.id,'aria-pressed':theme===t.id,onClick:()=>setTheme(t.id)},h('span',{className:'pw-theme-dot',style:{background:COLORS[i%COLORS.length]}}),t.title))),
+  h('div',{className:'pw-topline'},h('div',{className:'pw-world-tabs','aria-label':'World theme'},themes.map(t=>h(Action,{key:t.id,'aria-pressed':theme===t.id,onClick:()=>setTheme(t.id)},h('span',{className:'pw-theme-dot'}),t.title))),
    h('div',{className:'pw-counters','aria-label':'Agent counts'},h('span',null,h('strong',null,stats.total),'crew'),h('span',null,h('strong',null,stats.active),'working'),h('span',null,h('strong',null,stats.attention),'attention'))),
   h('div',{className:'pw-layout'},h('section',{'aria-label':'World and crew'},
    h('div',{className:'pw-world-card'},mode==='demo'?h('div',{className:'pw-banner',role:'status'},h('b',null,'Theme demonstration. '),'Illustrative agents and teamwork. Your live sessions are unchanged.'):
@@ -139,8 +138,8 @@ export function PixelWorlds({runtime,storage,host,realmLibrary,preferences,openE
   h('footer',{className:'pw-footer'},h('span',null,mode==='demo'?'Demonstration is isolated from live telemetry.':'Source-qualified identities · No invented progress · Attention stays visible'),h('span',null,'PD Pixel Worlds · Public alpha'))),
   displayMode&&h('div',{className:'pw-display-controls','aria-label':'Display controls'},
    h('div',{className:'pw-display-strip'},h(Action,{className:'pw-display-exit',onClick:()=>setDisplayMode(false),title:'Return to dashboard (Escape)'},'Exit display'),h('span',{className:'pw-display-status',role:'status'},mode==='demo'?'Demo · illustrative':observing?'Live · observed streams':'Live source · not connected',` · ${stageSummary}`,mode==='live'&&stats.unknown?` · ${stats.unknown} unverified`:'',paused?' · Paused':'')),
-   theme==='bridge'&&h(ShipControls,{ship,mode,agents,selectedId,onSelect,compact:true}),
-   h('div',{className:'pw-display-options'},h('label',null,h('span',{className:'pw-display-label'},'Theme'),h('select',{className:'pw-display-theme','aria-label':'Display theme',value:theme,onChange:e=>setTheme(e.target.value)},themes.map(t=>h('option',{key:t.id,value:t.id},t.title)))),h(Action,{'aria-pressed':paused,onClick:()=>setPaused(p=>!p)},paused?'Resume animation':'Pause animation'),h('span',{className:'pw-display-hint'},'Esc to return'))));
+   h('div',{className:'pw-display-options'},h('label',null,h('span',{className:'pw-display-label'},'Theme'),h('select',{className:'pw-display-theme','aria-label':'Display theme',value:theme,onChange:e=>setTheme(e.target.value)},themes.map(t=>h('option',{key:t.id,value:t.id},t.title)))),h(Action,{'aria-pressed':paused,onClick:()=>setPaused(p=>!p)},paused?'Resume animation':'Pause animation'),h('span',{className:'pw-display-hint'},'Esc to return')),
+   theme==='bridge'&&h(ShipControls,{ship,mode,agents,selectedId,onSelect,compact:true})));
 }
 
 export function PWAgents({runtime,host,realmLibrary,preferences,ship}){

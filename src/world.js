@@ -30,7 +30,7 @@ export function getTeamMembers(agents){return new Set(teamGroups(agents).flatMap
  */
 export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{},ship=null}={}){
  if(!canvas?.getContext)throw new TypeError('createWorld requires a canvas');
- const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('Canvas2D is unavailable');
+ const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas2D is unavailable');
  const doc=canvas.ownerDocument||globalThis.document;
  const host=doc?.defaultView||globalThis;
  const request=host.requestAnimationFrame?.bind(host),cancel=host.cancelAnimationFrame?.bind(host);
@@ -115,7 +115,9 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{},ship=null}=
   for(const item of sorted)drawBadge(sc,item,style,item.agent.id===state.selectedId);
   if(teamwork){const p=painter(sc);p.rect(350,93,108,13,'#65553ddd');p.text('LINKED TEAM WORK',356,97,'#ffebc0',6);}
   if(!shipFrame&&state.agents.length>CAPACITY){const p=painter(sc),s=`${items.length} IN SCENE · ${state.agents.length-items.length} IN LIST`;p.rect(151,286,181,12,'#303c38');p.text(s,160,289,'#eee4c9',6);}
-  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;ctx.fillStyle='#252a29';ctx.fillRect(0,0,width,height);ctx.drawImage(scene,offsetX,offsetY,W*scale,H*scale);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;
+  // CSS owns the exterior so host theme switches also repaint paused/reduced-motion scenes.
+  ctx.clearRect(0,0,width,height);ctx.drawImage(scene,offsetX,offsetY,W*scale,H*scale);
   regions=sorted.map(item=>({id:item.agent.id,x:offsetX+(item.x-(style==='cafe'?25:18))*scale,y:offsetY+(item.y-42)*scale,width:(style==='cafe'?53:40)*scale,height:49*scale,worldX:item.x*2,worldY:item.y*2,team:item.team}));
   drawCount++;frameMs=now()-start;measureFrames++;
   if(!measureStart)measureStart=start;

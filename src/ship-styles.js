@@ -33,6 +33,13 @@ export const shipStyles = `
 .pw .pw-ship--compact .pw-ship-population>span{display:none}
 .pw .pw-ship--compact .pw-ship-population:not(:has(strong)){display:none}
 .pw .pw-agents-controls,.pw .pw-display-controls{max-height:calc(100% - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+/* Keep shared controls on the left; Trek never pushes them below its disclosure. */
+.pw :is(.pw-agents-controls,.pw-display-controls):has(.pw-ship--compact){display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);grid-template-rows:min-content min-content 1fr;column-gap:8px;align-items:start;width:960px}
+.pw :is(.pw-agents-controls,.pw-display-controls)>:not(.pw-ship){grid-column:1;min-width:0}
+.pw :is(.pw-agents-controls,.pw-display-controls)>.pw-ship--compact{grid-column:2;grid-row:1/4;margin-top:0}
+/* Composite the host accent wash over its opaque elevated surface, never strip alpha. */
+.pw :is(.pw-agents-controls,.pw-display-controls)>*{background:var(--pw-panel)}
+@container(max-width:780px){.pw :is(.pw-agents-controls,.pw-display-controls):has(.pw-ship--compact){display:block}.pw :is(.pw-agents-controls,.pw-display-controls)>.pw-ship--compact{margin-top:5px}}
 .pw .pw-ship--compact .pw-ship-body{max-height:min(55vh,460px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:4px 5px 8px 3px}
 @container(max-width:480px){.pw .pw-ship-summary-note{margin-left:8px}}
 @media(prefers-reduced-motion:reduce){.pw .pw-ship,.pw .pw-ship *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

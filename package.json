@@ -1,6 +1,6 @@
 {
   "name": "pd-pixel-worlds",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Pixel-art realms for Hermes Desktop, with a shared live-agent runtime and a clean daily display.",
   "private": true,
   "type": "module",
