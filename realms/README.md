@@ -41,6 +41,11 @@ chairs, sweeping rail and two foreground helm stations.
 
 [Download TNG bridge](https://github.com/cygnostik/pd-pixel-worlds/releases/download/v0.2.0/pd-tng-bridge.pwrealm.json) · [Package source](pd-tng-bridge.pwrealm.json)
 
+The screenshot shows the refined main-branch bridge. The v0.2.0 release download
+contains the earlier artwork; [download the current bridge package](https://raw.githubusercontent.com/cygnostik/pd-pixel-worlds/main/realms/pd-tng-bridge.pwrealm.json)
+for the updated static scene. Main Engineering belongs to the built-in ship, not
+this data-only bridge package.
+
 See [NOTICE.md](../NOTICE.md) for third-party names and property rights. The MIT
 license does not grant franchise or trademark rights.
 

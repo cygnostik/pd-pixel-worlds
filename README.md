@@ -2,9 +2,11 @@
 
 **Pixel-art places for your agents to inhabit.** A Hermes Desktop plugin with live-selectable realms, a shared agent-state engine, and a clean display for everyday use.
 
-![Office Space, Kitten Café and the TNG-inspired bridge, using demonstration agents](docs/images/starter-realms.png)
+![Office Space, Kitten Café and a split Bridge–Engineering feature graphic, using demonstration agents](docs/images/starter-realms.png)
 
 **Public alpha · v0.2.0** · **[Browse & download realms](realms/README.md)** · [Get the plugin](https://github.com/cygnostik/pd-pixel-worlds/releases) · [Create a realm](docs/realms.md) · [Submit a realm](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml)
+
+[![Checks](https://github.com/cygnostik/pd-pixel-worlds/actions/workflows/ci.yml/badge.svg)](https://github.com/cygnostik/pd-pixel-worlds/actions/workflows/ci.yml) · [Install](#install-in-hermes-desktop) · [Use it](#use-it) · [Create a realm](#create-and-share-realms) · [MIT](LICENSE)
 
 ## Three starter realms
 
@@ -17,6 +19,8 @@ neutral styling as the other world controls. They do not run commands or route
 real jobs. The published v0.2.0 download
 does not include this candidate yet.
 
+*Screenshots show the current main-branch build with demonstration agents, not live sessions.*
+
 | Realm | What lives there |
 | --- | --- |
 | **Office Space** | CRTs, cubicles, coffee and a printer yard. The printer teamwork scene follows actual parent-linked delegation. |
@@ -24,6 +28,17 @@ does not include this candidate yet.
 | **Star Trek: TNG** | A fan-inspired Enterprise-D bridge: luminous dome, aft stations, three command chairs, sweeping rail and two foreground helm consoles. |
 
 The starter artwork is drawn procedurally. Switching realms preserves identities, selection and attention reminders. Demo agents are explicitly labelled and never become live activity.
+
+### Two rooms. One crew.
+
+![Added: Main Engineering! Bridge on the left, Engineering on the right, joined by a blue transporter beam — promotional composite](docs/images/tng-ship-feature.png)
+
+The current TNG world connects the Bridge and Main Engineering. Crew placement,
+room counts and attention indicators stay shared when you switch views.
+
+| Bridge | Main Engineering |
+| --- | --- |
+| ![Current bridge with compact scene controls and demonstration crew](docs/images/tng-bridge.png) | ![Current Main Engineering with compact scene controls and demonstration crew](docs/images/tng-engineering.png) |
 
 ## Add a realm
 
@@ -70,7 +85,7 @@ profile argument. [Installation and compatibility details →](docs/install.md)
 - **Display mode** gives the realm the pane without the dashboard. Reveal the small controls with hover or keyboard focus; use **Exit display** or **Escape** to return.
 - Select an agent for details and native session navigation. Search includes session identifiers.
 - Pause animation or enable reduced motion. Scenes stop animating while hidden.
-- The roster keeps all observed agents. Office/café and imports use twelve-person scene pages; the candidate TNG ship has seven bridge, eight Engineering and two office stations, with separate elsewhere/transit/off-stage counts.
+- The roster keeps all observed agents. Office/café and imports use twelve-person scene pages; the candidate TNG ship has seven Bridge and eight Engineering stations, with separate elsewhere/transit/off-stage counts.
 
 ![PW Agents showing the TNG-inspired bridge with an explicitly illustrative crew](docs/images/pw-agents.png)
 
@@ -107,6 +122,17 @@ The build needs no Hermes checkout, private packages, credentials or local sourc
 aliases. The installed `plugin.js` imports React and `@hermes/plugin-sdk` from the
 host. The standalone preview bundles React with a small local SDK fixture.
 Browser tests start and stop their own loopback servers.
+
+To refresh the repository graphics from the current build:
+
+```sh
+npm run build
+node scripts/capture-repo-media.mjs
+```
+
+The capture uses the isolated browser preview and its demonstration crew. It
+refreshes the scene screenshots, README hero, catalog banner and social card
+without connecting to Hermes or reading live sessions. [Media details →](docs/media.md)
 
 ## Create and share realms
 
