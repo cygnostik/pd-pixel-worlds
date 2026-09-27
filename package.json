@@ -15,6 +15,8 @@
     "test:browser": "node tests/browser.mjs",
     "test:display": "node tests/display-browser.mjs",
     "test:realms": "node tests/realms-browser.mjs",
+    "test:media": "node --test tests/catalog-media.test.mjs && node scripts/compose-catalog-media.mjs --check",
+    "media:catalog": "node scripts/compose-catalog-media.mjs",
     "test:ship": "node tests/ship-browser.mjs && node tests/ship-render-browser.mjs && node tests/bridge-render-browser.mjs && node tests/engineering-render-browser.mjs",
     "export:realms": "node scripts/export-realms.mjs",
     "install:plugin": "node scripts/install.mjs"

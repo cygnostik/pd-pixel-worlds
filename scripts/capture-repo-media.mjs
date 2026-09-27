@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile,readFile,stat} from 'node:fs/promises';
 import {startPreview} from './preview.mjs';
 import {composeTngFeature} from './compose-tng-feature.mjs';
+import {composeCatalogMedia} from './compose-catalog-media.mjs';
 
 const output=new URL('../docs/images/',import.meta.url);
 const server=await startPreview(),browser=await chromium.launch({headless:true});
@@ -82,7 +83,8 @@ try{
  }
  await compose('starter-realms.png',1440,720);
  await compose('social-preview.png',1280,640,true);
- await compose('catalog-banner.png',1440,720);
+ const catalog=await composeCatalogMedia(browser);
+ console.log(`Catalog critical-content bounds fit every destination: ${JSON.stringify(catalog.safe)}`);
  for(const file of [...views.flatMap(view=>[`${view.file}.png`,`${view.file}-scene.png`]),'tng-ship-feature.png','display-mode.png','pw-agents.png','starter-realms.png','social-preview.png','catalog-banner.png']){
   const bytes=await readFile(new URL(file,output));
   assert.ok(bytes.readUInt32BE(16)>0&&bytes.readUInt32BE(20)>0);
