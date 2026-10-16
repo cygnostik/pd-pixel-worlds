@@ -35,7 +35,7 @@ export function createShip({rooms,storage=null}={}){
  }
  function persist(){try{storage?.set('ship-settings-v1',{room:settings.room,night:settings.night,energy:settings.energy});}catch{/* Still usable for this session. */}}
  function freeStation(p,room){
-  return rooms[room].stations.find(s=>![...p.records.values()].some(r=>r.room===room&&r.station?.id===s.id)&&!(p.trip?.to===room&&p.trip.target.id===s.id));
+  return [...rooms[room].stations].sort((a,b)=>(a.priority??0)-(b.priority??0)).find(s=>![...p.records.values()].some(r=>r.room===room&&r.station?.id===s.id)&&!(p.trip?.to===room&&p.trip.target.id===s.id));
  }
  function stationRecord(r,room,station){Object.assign(r,{room,station,x:station.x,y:station.y,facing:station.facing||'south',seated:station.seated===true,phase:'station',walking:false,route:[]});}
  function place(p,r){

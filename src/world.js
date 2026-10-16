@@ -104,7 +104,7 @@ export function createWorld(canvas,{onSelect=()=>{},onMetrics=()=>{},ship=null}=
   for(const item of sorted){
    if(shipForeground&&!shipForegroundPainted&&item.y>=shipForeground.afterY){bridgeLayer(shipForeground.name,shipForeground.draw);shipForegroundPainted=true;}
    while(layerIndex<layers.length&&item.y>=layers[layerIndex].afterY)sc.drawImage(layers[layerIndex++].image,0,0);
-   if(bridge&&item.y>=160&&!railPainted){bridgeLayer('rail',drawBridgeRail);railPainted=true;}
+   if(bridge&&item.y>=(shipFrame?167:160)&&!railPainted){bridgeLayer('rail',drawBridgeRail);railPainted=true;}
    if(bridge&&shipFrame&&item.y>=286&&!helmPainted){bridgeLayer('helm',drawBridgeHelm);helmPainted=true;}
    drawAgent(sc,item,style,t,item.agent.id===state.selectedId);
   }

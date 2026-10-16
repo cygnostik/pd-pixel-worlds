@@ -23,8 +23,10 @@ hermes plugins enable pixel-worlds
 
 Open **Pixel Worlds** or **PW Agents** from the Desktop sidebar or command palette.
 The manifest declares only a desktop component: no tools, hooks, Python dependencies
-or environment credentials. Official catalog availability is pending; the command
-above uses the public source repository, not a catalog entry.
+or environment credentials. Pixel Worlds is also in the official catalog:
+`hermes plugins install pixel-worlds` installs its reviewed pin. Catalog updates
+require maintainer review and may lag the latest GitHub release. The command
+above uses the public source repository instead of the catalog pin.
 
 The native package contains `desktop/plugin.js`, identical to the standalone
 `plugin.js`. Current Hermes materializes the desktop half into its app plugin root
@@ -56,7 +58,9 @@ through it. No dependencies are needed to run the installer, only Node.js 22+.
 
 ## Updates and rollback
 
-Run the installer from the new version. Existing files move to
+For a catalog installation, use `hermes plugins update pixel-worlds` when the
+reviewed update is available. For a standalone installation, run the installer
+from the new version. Existing files move to
 `<HERMES_HOME>/plugin-backups/pixel-worlds-<timestamp>-<process>` before replacement.
 The output gives the exact backup path. No-op installs do not create a backup.
 

@@ -4,11 +4,15 @@
 
 ![Office Space, Kitten Café and a split Bridge–Engineering feature graphic, using demonstration agents](docs/images/starter-realms.png)
 
-**Public alpha · v0.3.0** · **[Browse & download realms](realms/README.md)** · [Get the plugin](https://github.com/cygnostik/pd-pixel-worlds/releases) · [Create a realm](docs/realms.md) · [Submit a realm](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml)
+**Public alpha · v0.3.1** · **[Browse & download realms](realms/README.md)** · [Get the plugin](https://github.com/cygnostik/pd-pixel-worlds/releases) · [Create a realm](docs/realms.md) · [Submit a realm](https://github.com/cygnostik/pd-pixel-worlds/issues/new?template=realm-submission.yml)
 
 [![Checks](https://github.com/cygnostik/pd-pixel-worlds/actions/workflows/ci.yml/badge.svg)](https://github.com/cygnostik/pd-pixel-worlds/actions/workflows/ci.yml) · [Install](#install-in-hermes-desktop) · [Use it](#use-it) · [Create a realm](#create-and-share-realms) · [MIT](LICENSE)
 
 ## Three starter realms
+
+**Updated in v0.3.1:** the bridge fills tactical and up to three aft computer
+stations before the side equipment bays. Tactical stands behind the horseshoe
+rail, and aft crew stay off the displays and keyboard ledge.
 
 **New in v0.3.0:** a built-in TNG ship with Bridge and Main Engineering,
 refined instruments and local crew placement. Use the room buttons and
@@ -84,7 +88,7 @@ profile argument. [Installation and compatibility details →](docs/install.md)
 - **Display mode** gives the realm the pane without the dashboard. Reveal the small controls with hover or keyboard focus; use **Exit display** or **Escape** to return.
 - Select an agent for details and native session navigation. Search includes session identifiers.
 - Pause animation or enable reduced motion. Scenes stop animating while hidden.
-- The roster keeps all observed agents. Office/café and imports use twelve-person scene pages; the TNG ship has seven Bridge and eight Engineering stations, with separate elsewhere/transit/off-stage counts.
+- The roster keeps all observed agents. Office/café and imports use twelve-person scene pages; the TNG ship has eleven Bridge and eight Engineering stations, with separate elsewhere/transit/off-stage counts.
 
 ![PW Agents showing the TNG-inspired bridge with an explicitly illustrative crew](docs/images/pw-agents.png)
 

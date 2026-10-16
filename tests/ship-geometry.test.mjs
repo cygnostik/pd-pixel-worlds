@@ -69,7 +69,17 @@ function clearCrew(point,station,room){for(const other of room.stations)if(other
 // all WALKING samples must clear that base. Command seats release their own
 // pedestal on the first segment only. No other furniture/crew is exempted.
 const commandRelease={'bridge-0':'command-chair-0','bridge-3':'command-chair-1','bridge-4':'command-chair-2'};
-for(const [id,room]of Object.entries(SHIP_ROOMS))for(const direction of ['departure','arrival'])test(`${id}: ${direction} clears fixed furniture and every other occupied station`,()=>{
+// Aft-bank watch crew (tactical + rear computers) live in the occluded strip
+// immediately north of the horseshoe: the rail layer hides their lower body,
+// like the reference tactical officer standing behind the railing. Their feet
+// stay on the floor strip at the wall base (y 146-166); they never stand or
+// walk up on the wall displays or keyboard ledge (y < 146). Rail footprints
+// are exempted for them only, within that strip.
+const railNames=bridge.map(([name])=>name).filter(name=>name.startsWith('rail'));
+const behindRail=new Set(['bridge-tactical','bridge-aft-port','bridge-aft-center','bridge-aft-starboard']);
+// Rail occlusion does not hide heads: retain full crew clearance throughout.
+const clearAftCrew=clearCrew;
+for(const [id,room] of Object.entries(SHIP_ROOMS))for(const direction of ['departure','arrival'])test(`${id}: ${direction} clears fixed furniture and every other occupied station`,()=>{
  for(const station of room.stations){
   const origin=station.stand||[station.x,station.y];
   const path=[origin,...station.exitPath,room.portal.approach,[room.portal.x,room.portal.y]];
@@ -77,7 +87,8 @@ for(const [id,room]of Object.entries(SHIP_ROOMS))for(const direction of ['depart
   // checked below. Every other station starts testing at its real walk anchor.
   const walking=commandRelease[station.id]?path.slice(1):path;
   for(const p of samples(direction==='arrival'?[...walking].reverse():walking)){
-   clear(p,footprints[id]);clearCrew(p,station,room);
+   clear(p,footprints[id],commandRelease[station.id]?[]:behindRail.has(station.id)&&p[0]>=123&&p[0]<=296&&p[1]>=146&&p[1]<=166?railNames:[]);
+   behindRail.has(station.id)&&!commandRelease[station.id]?clearAftCrew(p,station,room):clearCrew(p,station,room);
   }
   if(commandRelease[station.id]){
    const release=path.slice(0,2);
@@ -85,6 +96,21 @@ for(const [id,room]of Object.entries(SHIP_ROOMS))for(const direction of ['depart
     clear(p,bridge,[commandRelease[station.id]]);clearCrew(p,station,room);
    }
    clear(station.exitPath[0],bridge);
+  }
+ }
+});
+
+test('aft watch stands behind the horseshoe and never walks up onto the wall displays',()=>{
+ for(const id of ['bridge-tactical','bridge-aft-port','bridge-aft-center','bridge-aft-starboard']){
+  const station=SHIP_ROOMS.bridge.stations.find(s=>s.id===id);
+  assert.ok(station,`missing aft station ${id}`);
+  assert.equal(station.seated,false);
+  assert.equal(station.facing,id==='bridge-tactical'?'south':'north');
+  if(id==='bridge-tactical')assert.ok(station.y>=150,'tactical feet must be hidden behind the horseshoe crown, not visible above it');
+  assert.equal(station.exitPath.at(-1)[1]<=158&&station.exitPath.at(-1)[1]>=146,true,'exit must leave through the behind-rail corridor');
+  for(const p of samples([[station.x,station.y],...station.exitPath])){
+   assert.ok(p[1]>=146&&p[1]<=166,`${id} leaves the behind-rail floor strip at ${p}`);
+   clear(p,bridge,railNames);clearAftCrew(p,station,SHIP_ROOMS.bridge);
   }
  }
 });
@@ -130,7 +156,7 @@ test('helm chair releases are short, outward, reversible and never bypass other 
   }
   clear(station.stand,bridge);
  }
- assert.deepEqual(Object.values(SHIP_ROOMS).map(r=>r.stations.length),[7,8]);
+ assert.deepEqual(Object.values(SHIP_ROOMS).map(r=>r.stations.length),[11,8]);
 });
 
 test('real Engineering store departures and reversed arrivals clear a fully occupied roster',()=>{

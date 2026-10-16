@@ -1766,7 +1766,13 @@ var bridgeStations = [
   { slot: 4, route: [[284, 219], [146, 230], ...leftExit2], facing: "south" },
   { slot: 8, route: [[67, 216], ...leftExit2], facing: "west" },
   { slot: 9, route: [[413, 220], [381, 230], [381, 294], [99, 294], [99, 230], ...leftExit2], facing: "east" }
-].map(({ slot, stand, route, facing }, index) => ({ id: `bridge-${index}`, x: BRIDGE_ANCHORS[slot][0], y: BRIDGE_ANCHORS[slot][1], facing, seated: slot < 5, ...stand ? { stand } : {}, exitPath: route }));
+].map(({ slot, stand, route, facing }, index) => ({ id: `bridge-${index}`, x: BRIDGE_ANCHORS[slot][0], y: BRIDGE_ANCHORS[slot][1], facing, seated: slot < 5, priority: index < 3 ? index : index + 4, ...stand ? { stand } : {}, exitPath: route }));
+for (const [id, x, y, facing, priority, route] of [
+  ["tactical", 240, 152, "south", 3, [[226, 159], [123, 159], [123, 155]]],
+  ["aft-port", 184, 146, "north", 4, [[123, 159], [123, 155]]],
+  ["aft-center", 216, 146, "north", 5, [[216, 159], [123, 159], [123, 155]]],
+  ["aft-starboard", 296, 147, "north", 6, [[296, 166], [155, 166], [123, 155]]]
+]) bridgeStations.push({ id: `bridge-${id}`, x, y, facing, seated: false, priority, exitPath: route });
 var SHIP_ROOMS = Object.freeze({
   bridge: { id: "bridge", title: "Bridge", stations: bridgeStations, portal: { x: 123, y: 140, approach: [123, 155], rect: [103, 84, 42, 64] } },
   engineering: { id: "engineering", title: "Engineering", stations: ENGINEERING_STATIONS, portal: ENGINEERING_PORTAL }
@@ -2365,7 +2371,7 @@ function createWorld(canvas, { onSelect = () => {
         shipForegroundPainted = true;
       }
       while (layerIndex < layers.length && item.y >= layers[layerIndex].afterY) sc.drawImage(layers[layerIndex++].image, 0, 0);
-      if (bridge && item.y >= 160 && !railPainted) {
+      if (bridge && item.y >= (shipFrame ? 167 : 160) && !railPainted) {
         bridgeLayer("rail", drawBridgeRail);
         railPainted = true;
       }
@@ -2997,7 +3003,7 @@ function createShip({ rooms, storage = null } = {}) {
     }
   }
   function freeStation(p, room) {
-    return rooms[room].stations.find((s) => ![...p.records.values()].some((r) => r.room === room && r.station?.id === s.id) && !(p.trip?.to === room && p.trip.target.id === s.id));
+    return [...rooms[room].stations].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0)).find((s) => ![...p.records.values()].some((r) => r.room === room && r.station?.id === s.id) && !(p.trip?.to === room && p.trip.target.id === s.id));
   }
   function stationRecord(r, room, station) {
     Object.assign(r, { room, station, x: station.x, y: station.y, facing: station.facing || "south", seated: station.seated === true, phase: "station", walking: false, route: [] });

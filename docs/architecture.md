@@ -59,8 +59,9 @@ and DPR-correct hit regions. Selection callbacks receive an agent ID.
 
 Office/café and imported-v1 art capacity is twelve; the UI owns paging and
 exposes off-stage counts. The built-in TNG ship instead uses one shared local
-`createShip` presentation store: seven bridge stations, eight Engineering
-stations (15 total). The chief engineer's office artwork remains dormant in
+`createShip` presentation store: eleven bridge stations, eight Engineering
+stations (19 total). Bridge allocation fills command/helm, tactical, then three
+aft computer stations before companion chairs and side-bay overflow. The chief engineer's office artwork remains dormant in
 source: no allocation, navigation, transfers, idle visits or tea action reach it.
 Saved office preferences fall back to Bridge. Full rosters—not filtered or
 paged slices—feed that store. Other-room, transit and off-stage counts are
